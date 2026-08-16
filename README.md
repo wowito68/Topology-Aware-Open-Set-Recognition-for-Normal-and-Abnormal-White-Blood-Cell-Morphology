@@ -16,7 +16,7 @@ The code is organized as importable Python modules under `src/hemato_osr`:
 - `models`: image backbones, TDA-only baseline, deep+TDA fusion MLP.
 - `training`: closed-set training, checkpoints, seeds, fusion training.
 - `openset`: MSP, entropy, energy, and Mahalanobis scoring plus threshold calibration.
-- `topology`: cubical-complex diagrams, vectorizers, cache metadata, TDA extraction.
+- `topology`: cubical-complex diagrams, vectorizers, cache metadata, morphology candidates, activation maps, TDA extraction.
 - `evaluation`: closed-set/open-set/calibration metrics and evaluation artifacts.
 - `embeddings`: export logits and embeddings for downstream analysis.
 - `utils`: Hydra/OmegaConf config helpers and environment tracking.
@@ -133,6 +133,23 @@ python -m hemato_osr train fusion \
 ```
 
 TDA features are precomputed and cached; they are not computed inside the GPU forward pass.
+
+## Delivery 3 Exploratory TDA
+
+Delivery 3 investigates whether persistent homology is more useful on morphology-conditioned distance maps or frozen ResNet18 activation-energy maps than on raw grayscale pixels. It keeps the ResNet18 classifier frozen and uses TDA only as an unknownness score for transparent late fusion.
+
+```bash
+python -m hemato_osr delivery3 morphology-qc \
+  --manifest data/manifests/mll23_split_seed37.csv \
+  --output-dir artifacts/figures/delivery3/morphology_qc
+
+python -m hemato_osr delivery3 benchmark-feature-map \
+  --manifest data/manifests/mll23_split_seed37.csv \
+  --checkpoint artifacts/checkpoints/resnet18_seed37/best_checkpoint.pt \
+  --output-dir artifacts/benchmarks/delivery3/feature_map
+```
+
+Candidate masks are not ground-truth anatomy. The final Delivery 3 matrix and decision criteria are persisted before final test evaluation.
 
 ## Synthetic Smoke Test
 

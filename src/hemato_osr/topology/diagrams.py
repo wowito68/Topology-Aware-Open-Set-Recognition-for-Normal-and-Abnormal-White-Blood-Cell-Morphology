@@ -57,13 +57,32 @@ def _fallback_diagram(values: np.ndarray, dimensions: tuple[int, ...]) -> Persis
 def compute_diagram(path: Path, config: TDAConfig) -> PersistenceDiagram:
     """Compute H0/H1 persistence diagrams using cubical complexes."""
 
+    values = _load_grayscale(path, config.image_size)
+    return compute_diagram_from_array(values, config)
+
+
+def compute_diagram_from_array(values: np.ndarray, config: TDAConfig) -> PersistenceDiagram:
+    """Compute H0/H1 persistence diagrams from a normalized 2D scalar field."""
+
     if any(dim not in {0, 1} for dim in config.homology_dimensions):
         msg = "The 2D cubical-complex baseline only supports H0/H1"
         raise ValueError(msg)
     if config.infinite_policy != "keep":
         msg = "Only infinite_policy='keep' is supported; vectorizers drop essential bars explicitly"
         raise ValueError(msg)
-    values = _load_grayscale(path, config.image_size)
+    values = np.asarray(values, dtype=np.float64)
+    if values.ndim != 2:
+        msg = "Persistent homology scalar field must be 2D"
+        raise ValueError(msg)
+    if not np.isfinite(values).all():
+        msg = "Persistent homology scalar field contains NaN/Inf"
+        raise ValueError(msg)
+    lower = float(values.min())
+    upper = float(values.max())
+    if lower < -1e-6 or upper > 1.0 + 1e-6:
+        msg = "Persistent homology scalar field must be normalized to [0, 1]"
+        raise ValueError(msg)
+    values = np.clip(values, 0.0, 1.0)
     if config.filtration == "superlevel":
         values = 1.0 - values
     elif config.filtration != "sublevel":

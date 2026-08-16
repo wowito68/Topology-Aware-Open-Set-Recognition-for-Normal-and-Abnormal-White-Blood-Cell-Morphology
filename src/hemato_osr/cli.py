@@ -28,6 +28,15 @@ from hemato_osr.data.synthetic import SyntheticConfig, generate_synthetic_datase
 from hemato_osr.data.taxonomy import Taxonomy
 from hemato_osr.embeddings.extract import EmbeddingExtractConfig, extract_embeddings
 from hemato_osr.evaluation.pipeline import OpenSetEvaluationConfig, evaluate_open_set
+from hemato_osr.experiments.delivery3 import (
+    benchmark_feature_maps,
+    benchmark_shape_tda,
+    evaluate_delivery3,
+    extract_feature_map_tda,
+    extract_morphology_tda,
+    run_morphology_qc,
+    write_predeclared_matrix,
+)
 from hemato_osr.models.tda_baseline import TDAOnlyExperimentConfig, evaluate_tda_only
 from hemato_osr.smoke import SmokeConfig, run_smoke_test
 from hemato_osr.topology.extract import TDAExtractConfig, extract_tda_features
@@ -235,6 +244,62 @@ def build_parser() -> argparse.ArgumentParser:
     smoke = subcommands.add_parser("smoke")
     smoke.add_argument("--output-dir", type=Path, default=Path("artifacts/smoke"))
     smoke.add_argument("--seed", type=int, default=13)
+
+    delivery3 = subcommands.add_parser("delivery3")
+    d3_sub = delivery3.add_subparsers(dest="delivery3_command", required=True)
+    d3_qc = d3_sub.add_parser("morphology-qc")
+    d3_qc.add_argument("--manifest", type=Path, required=True)
+    d3_qc.add_argument("--output-dir", type=Path, required=True)
+    d3_qc.add_argument("--per-class", type=int, default=20)
+    d3_qc.add_argument("--seed", type=int, default=37)
+
+    d3_shape = d3_sub.add_parser("benchmark-shape")
+    d3_shape.add_argument("--manifest", type=Path, required=True)
+    d3_shape.add_argument("--output-dir", type=Path, required=True)
+    d3_shape.add_argument("--sample-size", type=int, default=500)
+    d3_shape.add_argument("--seed", type=int, default=37)
+
+    d3_fmap = d3_sub.add_parser("benchmark-feature-map")
+    d3_fmap.add_argument("--manifest", type=Path, required=True)
+    d3_fmap.add_argument("--checkpoint", type=Path, required=True)
+    d3_fmap.add_argument("--output-dir", type=Path, required=True)
+    d3_fmap.add_argument("--sample-size", type=int, default=500)
+    d3_fmap.add_argument("--batch-size", type=int, default=64)
+    d3_fmap.add_argument("--seed", type=int, default=37)
+    d3_fmap.add_argument("--device", default="auto")
+
+    d3_predeclare = d3_sub.add_parser("predeclare")
+    d3_predeclare.add_argument("--output", type=Path, required=True)
+    d3_predeclare.add_argument("--selected-layer", required=True)
+    d3_predeclare.add_argument("--include-cytoplasm", action="store_true")
+
+    d3_morph_extract = d3_sub.add_parser("extract-morphology")
+    d3_morph_extract.add_argument("--manifest", type=Path, required=True)
+    d3_morph_extract.add_argument("--diagrams", type=Path, required=True)
+    d3_morph_extract.add_argument("--features", type=Path, required=True)
+    d3_morph_extract.add_argument("--views", default="cell,nucleus,cytoplasm")
+    d3_morph_extract.add_argument("--workers", type=int, default=2)
+    d3_morph_extract.add_argument("--seed", type=int, default=37)
+
+    d3_fmap_extract = d3_sub.add_parser("extract-feature-map")
+    d3_fmap_extract.add_argument("--manifest", type=Path, required=True)
+    d3_fmap_extract.add_argument("--checkpoint", type=Path, required=True)
+    d3_fmap_extract.add_argument("--diagrams", type=Path, required=True)
+    d3_fmap_extract.add_argument("--features", type=Path, required=True)
+    d3_fmap_extract.add_argument("--layer", required=True)
+    d3_fmap_extract.add_argument("--batch-size", type=int, default=64)
+    d3_fmap_extract.add_argument("--seed", type=int, default=37)
+    d3_fmap_extract.add_argument("--device", default="auto")
+
+    d3_eval = d3_sub.add_parser("evaluate")
+    d3_eval.add_argument("--embeddings", type=Path, required=True)
+    d3_eval.add_argument("--morphology-features", type=Path, required=True)
+    d3_eval.add_argument("--feature-map-features", type=Path, required=True)
+    d3_eval.add_argument("--raw-tda-predictions", type=Path, required=True)
+    d3_eval.add_argument("--matrix", type=Path, required=True)
+    d3_eval.add_argument("--output-dir", type=Path, required=True)
+    d3_eval.add_argument("--checkpoint", type=Path, required=True)
+    d3_eval.add_argument("--seed", type=int, default=37)
     return parser
 
 
@@ -506,6 +571,88 @@ def main(argv: list[str] | None = None) -> None:
     if args.command == "smoke":
         outputs = run_smoke_test(SmokeConfig(output_dir=args.output_dir, seed=args.seed))
         print(json.dumps({key: str(value) for key, value in outputs.items()}, indent=2))
+        return
+
+    if args.command == "delivery3" and args.delivery3_command == "morphology-qc":
+        output = run_morphology_qc(
+            args.manifest,
+            args.output_dir,
+            per_class=args.per_class,
+            seed=args.seed,
+        )
+        print(output)
+        return
+
+    if args.command == "delivery3" and args.delivery3_command == "benchmark-shape":
+        output = benchmark_shape_tda(
+            args.manifest,
+            args.output_dir,
+            sample_size=args.sample_size,
+            seed=args.seed,
+        )
+        print(output)
+        return
+
+    if args.command == "delivery3" and args.delivery3_command == "benchmark-feature-map":
+        output = benchmark_feature_maps(
+            args.manifest,
+            args.checkpoint,
+            args.output_dir,
+            sample_size=args.sample_size,
+            batch_size=args.batch_size,
+            seed=args.seed,
+            device=args.device,
+        )
+        print(output)
+        return
+
+    if args.command == "delivery3" and args.delivery3_command == "predeclare":
+        output = write_predeclared_matrix(
+            args.output,
+            selected_layer=args.selected_layer,
+            include_cytoplasm=args.include_cytoplasm,
+        )
+        print(output)
+        return
+
+    if args.command == "delivery3" and args.delivery3_command == "extract-morphology":
+        output = extract_morphology_tda(
+            args.manifest,
+            args.diagrams,
+            args.features,
+            views=tuple(filter(None, args.views.split(","))),
+            workers=args.workers,
+            seed=args.seed,
+        )
+        print(output)
+        return
+
+    if args.command == "delivery3" and args.delivery3_command == "extract-feature-map":
+        output = extract_feature_map_tda(
+            args.manifest,
+            args.checkpoint,
+            args.diagrams,
+            args.features,
+            layer=args.layer,
+            batch_size=args.batch_size,
+            seed=args.seed,
+            device=args.device,
+        )
+        print(output)
+        return
+
+    if args.command == "delivery3" and args.delivery3_command == "evaluate":
+        output = evaluate_delivery3(
+            args.embeddings,
+            args.morphology_features,
+            args.feature_map_features,
+            args.raw_tda_predictions,
+            args.matrix,
+            args.output_dir,
+            checkpoint_path=args.checkpoint,
+            seed=args.seed,
+        )
+        print(output)
         return
 
     parser.error("Unhandled command")

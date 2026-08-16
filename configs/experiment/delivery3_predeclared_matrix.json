@@ -1,0 +1,194 @@
+{
+  "decision_criteria": {
+    "abandonment": "If all defensible variants have delta AUROC <= 0 and delta FPR95 >= 0, and no subgroup effect, recommend stopping TDA development.",
+    "criterion_a": "Delta overall AUROC >= +0.01 with favorable paired bootstrap CI",
+    "criterion_b": "Delta FPR95 <= -0.05 with no meaningful overall AUROC degradation",
+    "criterion_c": "Delta subgroup AUROC >= +0.03 without severe overall OSR degradation"
+  },
+  "methods": [
+    {
+      "id": "deep_msp",
+      "osr_score": "msp_anomaly",
+      "primary": true,
+      "representation": "Deep MSP baseline",
+      "source": "resnet18_logits"
+    },
+    {
+      "id": "raw_tda_centroid_historical",
+      "osr_score": "centroid_distance",
+      "primary": false,
+      "representation": "Raw-image TDA historical",
+      "source": "delivery2_raw_grayscale_tda"
+    },
+    {
+      "id": "morph_cell_centroid",
+      "osr_score": "centroid_distance",
+      "primary": true,
+      "representation": "Morph Cell",
+      "source": "candidate_mask_distance_map",
+      "tda_view": "cell"
+    },
+    {
+      "id": "morph_cell_mahalanobis",
+      "osr_score": "mahalanobis",
+      "primary": false,
+      "representation": "Morph Cell",
+      "source": "candidate_mask_distance_map",
+      "tda_view": "cell"
+    },
+    {
+      "id": "morph_nucleus_centroid",
+      "osr_score": "centroid_distance",
+      "primary": true,
+      "representation": "Morph Nucleus",
+      "source": "candidate_mask_distance_map",
+      "tda_view": "nucleus"
+    },
+    {
+      "id": "morph_nucleus_mahalanobis",
+      "osr_score": "mahalanobis",
+      "primary": false,
+      "representation": "Morph Nucleus",
+      "source": "candidate_mask_distance_map",
+      "tda_view": "nucleus"
+    },
+    {
+      "id": "morph_cell_nucleus_centroid",
+      "osr_score": "centroid_distance",
+      "primary": true,
+      "representation": "Morph Cell+Nucleus",
+      "source": "candidate_mask_distance_map",
+      "tda_view": "cell+nucleus"
+    },
+    {
+      "id": "morph_cell_nucleus_mahalanobis",
+      "osr_score": "mahalanobis",
+      "primary": false,
+      "representation": "Morph Cell+Nucleus",
+      "source": "candidate_mask_distance_map",
+      "tda_view": "cell+nucleus"
+    },
+    {
+      "id": "feature_map_centroid",
+      "layer": "layer3",
+      "osr_score": "centroid_distance",
+      "primary": true,
+      "representation": "Feature-map TDA",
+      "source": "resnet18_activation_energy"
+    },
+    {
+      "id": "feature_map_mahalanobis",
+      "layer": "layer3",
+      "osr_score": "mahalanobis",
+      "primary": false,
+      "representation": "Feature-map TDA",
+      "source": "resnet18_activation_energy"
+    },
+    {
+      "alpha": 0.5,
+      "fusion_rule": "fixed_alpha",
+      "id": "late_morph_cell_nucleus_alpha_0_50",
+      "primary": true,
+      "representation": "Deep+Morph late fusion",
+      "source": "deep_msp_plus_morph_cell_nucleus"
+    },
+    {
+      "alpha": 0.5,
+      "fusion_rule": "fixed_alpha",
+      "id": "late_feature_map_alpha_0_50",
+      "layer": "layer3",
+      "primary": true,
+      "representation": "Deep+Feature-map late fusion",
+      "source": "deep_msp_plus_feature_map"
+    },
+    {
+      "alpha": 0.25,
+      "fusion_rule": "fixed_alpha",
+      "id": "late_morph_cell_nucleus_alpha_0_25",
+      "primary": false,
+      "representation": "Deep+Morph late fusion",
+      "source": "deep_msp_plus_morph_cell_nucleus"
+    },
+    {
+      "alpha": 0.25,
+      "fusion_rule": "fixed_alpha",
+      "id": "late_feature_map_alpha_0_25",
+      "layer": "layer3",
+      "primary": false,
+      "representation": "Deep+Feature-map late fusion",
+      "source": "deep_msp_plus_feature_map"
+    },
+    {
+      "alpha": 0.75,
+      "fusion_rule": "fixed_alpha",
+      "id": "late_morph_cell_nucleus_alpha_0_75",
+      "primary": false,
+      "representation": "Deep+Morph late fusion",
+      "source": "deep_msp_plus_morph_cell_nucleus"
+    },
+    {
+      "alpha": 0.75,
+      "fusion_rule": "fixed_alpha",
+      "id": "late_feature_map_alpha_0_75",
+      "layer": "layer3",
+      "primary": false,
+      "representation": "Deep+Feature-map late fusion",
+      "source": "deep_msp_plus_feature_map"
+    },
+    {
+      "fusion_rule": "max",
+      "id": "late_morph_cell_nucleus_max",
+      "primary": false,
+      "representation": "Deep+Morph late fusion",
+      "source": "deep_msp_plus_morph_cell_nucleus"
+    },
+    {
+      "fusion_rule": "max",
+      "id": "late_feature_map_max",
+      "layer": "layer3",
+      "primary": false,
+      "representation": "Deep+Feature-map late fusion",
+      "source": "deep_msp_plus_feature_map"
+    },
+    {
+      "id": "morph_cytoplasm_centroid",
+      "osr_score": "centroid_distance",
+      "primary": false,
+      "representation": "Morph Cytoplasm",
+      "source": "candidate_mask_distance_map",
+      "tda_view": "cytoplasm"
+    },
+    {
+      "id": "morph_cytoplasm_mahalanobis",
+      "osr_score": "mahalanobis",
+      "primary": false,
+      "representation": "Morph Cytoplasm",
+      "source": "candidate_mask_distance_map",
+      "tda_view": "cytoplasm"
+    }
+  ],
+  "seed": 37,
+  "split": "V1",
+  "status": "predeclared_before_final_test_evaluation",
+  "unknown_groups": {
+    "immature_related_myeloid": [
+      "myeloblast",
+      "promyelocyte",
+      "promyelocyte_atypical",
+      "myelocyte",
+      "metamyelocyte",
+      "neutrophil_band"
+    ],
+    "lymphoid_related": [
+      "lymphocyte_large_granular",
+      "lymphocyte_neoplastic",
+      "lymphocyte_reactive",
+      "hairy_cell",
+      "plasma_cell"
+    ],
+    "other": [
+      "normoblast",
+      "smudge_cell"
+    ]
+  }
+}

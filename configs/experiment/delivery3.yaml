@@ -1,0 +1,125 @@
+name: delivery3_morphology_feature_map_tda
+status: exploratory_method_development
+seed: 37
+primary_split: V1
+manifest_v1: data/manifests/mll23_split_seed37.csv
+manifest_v2: data/manifests/mll23_seed37_v2_conservative.csv
+frozen_deep_baseline:
+  checkpoint: artifacts/checkpoints/resnet18_seed37/best_checkpoint.pt
+  embeddings: artifacts/embeddings/resnet18_seed37_embeddings.npz
+  classifier: ResNet18
+  image_size: 224
+  open_set_primary_score: MSP anomaly = 1 - max softmax probability
+  retrain_primary_delivery3: false
+known_classes:
+  - basophil
+  - eosinophil
+  - lymphocyte
+  - monocyte
+  - neutrophil_segmented
+unknown_groups:
+  immature_related_myeloid:
+    - myeloblast
+    - promyelocyte
+    - promyelocyte_atypical
+    - myelocyte
+    - metamyelocyte
+    - neutrophil_band
+  lymphoid_related:
+    - lymphocyte_large_granular
+    - lymphocyte_neoplastic
+    - lymphocyte_reactive
+    - hairy_cell
+    - plasma_cell
+  other:
+    - normoblast
+    - smudge_cell
+delivery2_context:
+  raw_tda_representation: 96x96 grayscale sublevel+superlevel H0/H1
+  tda_only_centroid_auroc: 0.5524
+  deep_msp_auroc: 0.8602
+  deep_msp_fpr95: 0.5500
+  deep_raw_tda_fusion_msp_auroc: 0.8402
+  deep_raw_tda_fusion_msp_fpr95: 0.6878
+  paired_delta_auroc: -0.0200
+  paired_delta_auroc_95ci: [-0.0235, -0.0160]
+  paired_delta_fpr95: 0.1379
+  paired_delta_fpr95_95ci: [0.1156, 0.1558]
+  conclusion: naive early concatenation of raw-image TDA is rejected as primary method
+morphology_candidates:
+  terminology: candidate masks; not anatomical ground truth
+  qc_subset: known_train_only
+  qc_per_known_class: 20
+  image_size: 96
+  whole_cell:
+    method: central foreground from border-median RGB background distance plus saturation/value thresholds
+    cleanup: opening, closing, hole fill, small-component removal, central-component preference
+  nucleus:
+    method: darker blue-purple chromatin-like pixels inside whole-cell candidate
+    cleanup: opening, closing, hole fill, small-component removal
+  cytoplasm:
+    method: whole_cell_candidate minus nucleus_candidate with deterministic cleanup
+  status_labels: [valid, warning, invalid]
+shape_tda:
+  views: [cell, nucleus, cytoplasm]
+  primary_views: [cell, nucleus, cell+nucleus]
+  cytoplasm_policy: include only if known-train QC has acceptable validity
+  distance_map: normalized inside-mask Euclidean distance to nearest background or boundary
+  filtrations: [sublevel, superlevel]
+  homology_dimensions: [0, 1]
+  vectorizers:
+    - persistence-entropy
+    - betti-curve
+    - persistence-landscape
+    - persistence-image
+feature_map_tda:
+  checkpoint_frozen: true
+  candidate_layers: [layer1, layer2, layer3, layer4]
+  layer_benchmark_sample_size: 500
+  layer_selection_basis:
+    - spatial resolution
+    - degenerate diagram rate
+    - PH runtime
+    - feature variance
+  forbidden_layer_selection_basis: unknown-test AUROC
+  scalar_map: RMS activation energy sqrt(mean_c A(c,h,w)^2)
+  normalization: per-sample robust percentile to [0,1]
+  filtrations: [sublevel, superlevel]
+  homology_dimensions: [0, 1]
+tda_anomaly_scores:
+  primary: nearest known-class centroid distance
+  fit_split: known train only
+  score_orientation: larger means more unknown-like
+calibration:
+  method: empirical percentile
+  reference_split: known validation only
+late_fusion:
+  trained_fusion_classifier: false
+  primary:
+    id: alpha_0_50
+    formula: 0.5 * calibrated_deep_msp_anomaly + 0.5 * calibrated_tda_anomaly
+  secondary_fixed_alphas: [0.25, 0.75]
+  secondary_max_rule: predefined optional; report if implemented
+predeclared_methods:
+  - deep_msp
+  - raw_tda_centroid_historical
+  - morph_cell_centroid
+  - morph_nucleus_centroid
+  - morph_cell_nucleus_centroid
+  - feature_map_centroid
+  - late_morph_cell_nucleus_alpha_0_50
+  - late_feature_map_alpha_0_50
+  - morph_cytoplasm_centroid_optional_if_qc_valid
+decision_criteria:
+  criterion_a: delta overall AUROC >= +0.01 with favorable paired bootstrap CI
+  criterion_b: delta FPR95 <= -0.05 with no meaningful overall AUROC degradation
+  criterion_c: delta subgroup AUROC >= +0.03 without severe overall OSR degradation
+  abandonment: if all defensible variants have delta AUROC <= 0 and delta FPR95 >= 0 overall, and no subgroup effect, recommend STOP TDA METHOD DEVELOPMENT
+v2_policy:
+  run_v2_for_all_methods: false
+  run_v2_only_if_v1_promising: true
+required_outputs:
+  method_comparison: artifacts/metrics/delivery3/method_comparison.csv
+  per_unknown_class: artifacts/metrics/delivery3/per_unknown_class.csv
+  subgroup_results: artifacts/metrics/delivery3/subgroup_results.csv
+  figures_dir: artifacts/figures/delivery3
