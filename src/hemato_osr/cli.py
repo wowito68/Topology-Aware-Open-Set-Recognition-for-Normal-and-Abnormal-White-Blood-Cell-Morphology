@@ -35,7 +35,17 @@ from hemato_osr.experiments.delivery3 import (
     extract_feature_map_tda,
     extract_morphology_tda,
     run_morphology_qc,
-    write_predeclared_matrix,
+)
+from hemato_osr.experiments.delivery3 import (
+    write_predeclared_matrix as write_delivery3_predeclared_matrix,
+)
+from hemato_osr.experiments.delivery4 import (
+    Delivery4Config,
+    evaluate_delivery4,
+    reproduce_delivery4_baselines,
+)
+from hemato_osr.experiments.delivery4 import (
+    write_predeclared_matrix as write_delivery4_predeclared_matrix,
 )
 from hemato_osr.models.tda_baseline import TDAOnlyExperimentConfig, evaluate_tda_only
 from hemato_osr.smoke import SmokeConfig, run_smoke_test
@@ -300,6 +310,23 @@ def build_parser() -> argparse.ArgumentParser:
     d3_eval.add_argument("--output-dir", type=Path, required=True)
     d3_eval.add_argument("--checkpoint", type=Path, required=True)
     d3_eval.add_argument("--seed", type=int, default=37)
+
+    delivery4 = subcommands.add_parser("delivery4")
+    d4_sub = delivery4.add_subparsers(dest="delivery4_command", required=True)
+    d4_predeclare = d4_sub.add_parser("predeclare")
+    d4_predeclare.add_argument("--output", type=Path, required=True)
+
+    d4_reproduce = d4_sub.add_parser("reproduce-baselines")
+    d4_reproduce.add_argument("--embeddings", type=Path, required=True)
+    d4_reproduce.add_argument("--checkpoint", type=Path, required=True)
+    d4_reproduce.add_argument("--output", type=Path, required=True)
+
+    d4_eval = d4_sub.add_parser("evaluate")
+    d4_eval.add_argument("--embeddings", type=Path, required=True)
+    d4_eval.add_argument("--checkpoint", type=Path, required=True)
+    d4_eval.add_argument("--matrix", type=Path, required=True)
+    d4_eval.add_argument("--output-dir", type=Path, required=True)
+    d4_eval.add_argument("--seed", type=int, default=37)
     return parser
 
 
@@ -607,7 +634,7 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     if args.command == "delivery3" and args.delivery3_command == "predeclare":
-        output = write_predeclared_matrix(
+        output = write_delivery3_predeclared_matrix(
             args.output,
             selected_layer=args.selected_layer,
             include_cytoplasm=args.include_cytoplasm,
@@ -651,6 +678,29 @@ def main(argv: list[str] | None = None) -> None:
             args.output_dir,
             checkpoint_path=args.checkpoint,
             seed=args.seed,
+        )
+        print(output)
+        return
+
+    if args.command == "delivery4" and args.delivery4_command == "predeclare":
+        output = write_delivery4_predeclared_matrix(args.output)
+        print(output)
+        return
+
+    if args.command == "delivery4" and args.delivery4_command == "reproduce-baselines":
+        output = reproduce_delivery4_baselines(args.embeddings, args.checkpoint, args.output)
+        print(output)
+        return
+
+    if args.command == "delivery4" and args.delivery4_command == "evaluate":
+        output = evaluate_delivery4(
+            Delivery4Config(
+                embeddings_path=args.embeddings,
+                checkpoint_path=args.checkpoint,
+                matrix_path=args.matrix,
+                output_dir=args.output_dir,
+                seed=args.seed,
+            )
         )
         print(output)
         return

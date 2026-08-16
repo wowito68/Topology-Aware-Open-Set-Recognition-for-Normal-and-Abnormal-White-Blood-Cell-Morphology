@@ -1,0 +1,151 @@
+{
+  "decision_criteria": {
+    "criterion_a": "Delta AUROC vs MSP >= +0.015 with favorable paired bootstrap CI",
+    "criterion_b": "Delta FPR95 vs MSP <= -0.075 while Delta AUROC >= -0.005",
+    "criterion_c": "Delta lymphoid-related subgroup AUROC >= +0.03 without overall AUROC degradation > 0.01"
+  },
+  "methods": [
+    {
+      "method": "msp",
+      "primary": true,
+      "status": "implemented",
+      "variant": "primary"
+    },
+    {
+      "method": "entropy",
+      "primary": false,
+      "status": "implemented",
+      "variant": "baseline"
+    },
+    {
+      "method": "energy",
+      "primary": true,
+      "status": "implemented",
+      "variant": "T=1"
+    },
+    {
+      "method": "energy",
+      "primary": false,
+      "status": "implemented",
+      "variant": "T=0.5"
+    },
+    {
+      "method": "energy",
+      "primary": false,
+      "status": "implemented",
+      "variant": "T=2"
+    },
+    {
+      "method": "ncm_euclidean",
+      "primary": true,
+      "status": "implemented",
+      "variant": "primary"
+    },
+    {
+      "method": "ncm_cosine",
+      "primary": true,
+      "status": "implemented",
+      "variant": "primary"
+    },
+    {
+      "method": "knn_cosine",
+      "primary": false,
+      "status": "implemented",
+      "variant": "k=1"
+    },
+    {
+      "method": "knn_cosine",
+      "primary": true,
+      "status": "implemented",
+      "variant": "k=5"
+    },
+    {
+      "method": "knn_cosine",
+      "primary": false,
+      "status": "implemented",
+      "variant": "k=10"
+    },
+    {
+      "method": "historical_mahalanobis",
+      "primary": false,
+      "status": "implemented",
+      "variant": "pinv_regularization_1e-4"
+    },
+    {
+      "method": "regularized_mahalanobis",
+      "primary": true,
+      "status": "implemented",
+      "variant": "ledoit_wolf"
+    },
+    {
+      "method": "relative_mahalanobis",
+      "primary": true,
+      "status": "implemented",
+      "variant": "ledoit_wolf_class_minus_global"
+    },
+    {
+      "method": "react_energy",
+      "primary": false,
+      "status": "implemented",
+      "variant": "p85"
+    },
+    {
+      "method": "react_energy",
+      "primary": true,
+      "status": "implemented",
+      "variant": "p90"
+    },
+    {
+      "method": "react_energy",
+      "primary": false,
+      "status": "implemented",
+      "variant": "p95"
+    },
+    {
+      "method": "vim",
+      "primary": true,
+      "status": "implemented",
+      "variant": "pca_95pct_variance"
+    },
+    {
+      "method": "dice",
+      "primary": false,
+      "reason": "Skipped because a rigorous DICE contribution-pruning implementation for signed pooled ResNet embeddings is not established in this codebase.",
+      "status": "not implemented",
+      "variant": "not_applicable"
+    }
+  ],
+  "primary_baseline": "msp",
+  "ranking_priority_if_multiple_pass": [
+    "overall AUROC",
+    "FPR95",
+    "OSCR",
+    "simplicity / no additional forward pass",
+    "runtime"
+  ],
+  "score_orientation": "larger means more UNKNOWN-like",
+  "seed": 37,
+  "split": "V1",
+  "status": "predeclared_before_delivery4_final_evaluation",
+  "unknown_groups": {
+    "immature_related_myeloid": [
+      "myeloblast",
+      "promyelocyte",
+      "promyelocyte_atypical",
+      "myelocyte",
+      "metamyelocyte",
+      "neutrophil_band"
+    ],
+    "lymphoid_related": [
+      "lymphocyte_large_granular",
+      "lymphocyte_neoplastic",
+      "lymphocyte_reactive",
+      "hairy_cell",
+      "plasma_cell"
+    ],
+    "other": [
+      "normoblast",
+      "smudge_cell"
+    ]
+  }
+}

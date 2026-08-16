@@ -12,6 +12,8 @@ Delivery 2 uses the strict protocol. No unknown-development split is used for mo
 
 Delivery 3 also uses the strict protocol. Candidate-mask QC, feature-map layer selection, vectorizer fitting, TDA class statistics, empirical score calibration, and threshold calibration are all performed without unknown-test labels or unknown-test score distributions.
 
+Delivery 4 uses the same strict protocol but stops TDA method development. All new methods are post-hoc scores over the frozen ResNet18 seed-37 logits or 512-dimensional embeddings. Fit-time statistics are allowed only on known-train rows. Thresholds are calibrated only on known-validation rows. Unknown-test rows are reserved for final reporting and explanatory geometry.
+
 ## Split Protocols
 
 Split V1 is the original seed-37 split used by Delivery 1. Split V2 is a conservative near-duplicate-aware sensitivity split. V2 keeps all unknown samples outside training and moves only samples required by configured high-confidence near-duplicate components.
@@ -52,6 +54,22 @@ For Delivery 3:
 - Optional fixed alphas `0.25` and `0.75` are secondary and must be reported as such.
 - No trained binary known-vs-unknown classifier is fit on unknown-test labels.
 
+For Delivery 4:
+
+- MSP anomaly is `1 - max_softmax_probability`.
+- Predictive entropy is unknown-like when entropy is larger.
+- Energy is `-T * logsumexp(logits / T)`, with `T=1` primary and `T=0.5/2` secondary.
+- Euclidean NCM is the distance to the nearest known-train class mean.
+- Cosine NCM is `1 - max cosine similarity` to normalized known-train prototypes.
+- Cosine kNN is the mean cosine distance to known-train neighbors; `k=5` is primary.
+- Historical Mahalanobis uses the previous pooled pseudo-inverse covariance recipe as a secondary reproduction baseline.
+- Regularized Mahalanobis uses pooled Ledoit-Wolf covariance from known-train residuals.
+- Relative Mahalanobis is the minimum class-conditional distance minus the global known-train background distance.
+- ReAct clips pre-classifier embeddings at a known-train percentile, recomputes the frozen linear head, and uses energy; the 90th percentile is primary.
+- ViM fits known-train PCA statistics and scale, with an ID-only 95% explained-variance rule, and scores `alpha * residual_norm - logsumexp(logits)`.
+- DICE is secondary only if implemented rigorously; otherwise it is documented as skipped.
+- ODIN is not primary because it would require an input-gradient perturbation pathway outside the fixed post-hoc embedding protocol.
+
 Reported AUROC and AUPR are therefore unknown-positive unless explicitly stated otherwise. FPR@95TPR is the false-positive rate among known samples when true-positive rate for unknown samples is fixed at 95%.
 
 ## Per-Unknown-Class Analysis
@@ -65,3 +83,5 @@ Delivery 3 also reports predefined subgroup aggregates:
 - `other`
 
 Special analyses compare `neutrophil_segmented` versus `neutrophil_band` and inspect lymphocyte-related unknowns. These analyses explain behavior; they do not redefine the primary overall metric.
+
+Delivery 4 reports the same predefined subgroup aggregates and additionally writes embedding geometry tables: per-class nearest known centroid, centroid distance, kNN distance summaries, known-train compactness, class-centroid distance matrix, and unknown-to-known attractor frequencies. These geometry outputs are explanatory only and are not used to choose thresholds or primary methods.

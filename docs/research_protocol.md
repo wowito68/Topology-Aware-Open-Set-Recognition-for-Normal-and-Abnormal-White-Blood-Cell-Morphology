@@ -20,6 +20,12 @@ Delivery 3 adds exploratory method-development questions:
 - `RQ6`: Can a topology-derived anomaly score improve unknown-cell rejection when used only as late-fusion evidence, without modifying the frozen closed-set classifier?
 - `RQ7`: Which hematological morphology families benefit or degrade most from topology-based rejection?
 
+Delivery 4 stops TDA method development and asks post-hoc open-set questions over the fixed ResNet18 seed-37 representation:
+
+- `RQ8`: Can stronger post-hoc OSR scores over the frozen 512-dimensional ResNet18 embedding improve unknown-cell rejection versus MSP, entropy, energy, and the historical Mahalanobis baseline?
+- `RQ9`: Which unknown morphologies remain hard, and are the failures concentrated in biologically adjacent morphology families?
+- `RQ10`: Is poor OSR performance associated with unknown samples lying close to known-class embedding manifolds or nearest known attractors?
+
 ## Hypotheses
 
 - Deep embeddings provide strong closed-set morphology discrimination.
@@ -66,6 +72,12 @@ Delivery 3 compares only a controlled exploratory matrix:
 - Deep MSP plus feature-map TDA late fusion with fixed alpha `0.50`.
 - Cytoplasm-candidate TDA only if known-train QC indicates the candidate is usable.
 
+Delivery 3 result: all defensible topology variants failed to improve the frozen ResNet18 open-set baseline. TDA remains only a historical negative/complementary ablation. Delivery 4 must not add new TDA variants, tune topology features, or reopen topology method development.
+
+Delivery 4 compares post-hoc scoring rules over the frozen ResNet18 checkpoint `artifacts/checkpoints/resnet18_seed37/best_checkpoint.pt`, embedding dimension `512`, checkpoint SHA256 `7fb2e2a6741a4fcd1b7d9e3a985ab136fa0550741b69dcd62f0f21c28b6ae39d`, and embedding manifest hash `4b8da8df49655b6f04b53aa75a912f0efceac776d81761b2b45b68c440c27bae`. No representation learning is allowed: no SupCon, ArcFace, triplet loss, fine-tuning, or new CNN training.
+
+The predeclared Delivery 4 method matrix is persisted before final evaluation at `configs/experiment/delivery4_predeclared_matrix.json`. Primary methods are MSP, energy `T=1`, Euclidean NCM, cosine NCM, cosine kNN `k=5`, Ledoit-Wolf regularized Mahalanobis, relative Mahalanobis, ReAct energy at the 90th known-train activation percentile, and ViM with an ID-only 95% PCA variance rule. Secondary methods include entropy, energy `T=0.5/2`, cosine kNN `k=1/10`, historical Mahalanobis, and ReAct at percentiles `85/95`. DICE is skipped unless a rigorous implementation is available; ODIN is not a primary method.
+
 ## Separation Rules
 
 Training, validation, threshold calibration, and final testing are separate phases. Test data is never used for model selection, threshold selection, calibration, hyperparameter tuning, or preprocessing decisions.
@@ -75,6 +87,8 @@ Split V1 is the original deterministic seed-37 manifest. Split V2 is a conservat
 Unknown classes remain excluded from closed-set model fitting. Strict open-set thresholds are calibrated with known validation samples only; unknown test samples are reserved for final reporting.
 
 Delivery 3 additionally forbids selecting segmentation thresholds, activation layers, fusion alphas, score calibrations, or feature combinations using unknown test metrics. Feature-map layer selection is based on pre-test feasibility: spatial resolution, non-degenerate diagrams, runtime, and feature variance. Fusion alpha `0.50` is primary and fixed before test evaluation; optional secondary fixed alphas are `0.25` and `0.75`.
+
+Delivery 4 fits all post-hoc statistics on known-train embeddings only. Strict thresholds are calibrated with known-validation scores only. Unknown-test samples are used once for reporting the predeclared matrix, per-unknown-class analysis, subgroup analysis, paired bootstrap deltas, and embedding-geometry interpretation. ViM dimensionality, ReAct clipping, NCM prototypes, kNN banks, and covariance estimates must not use validation, test, or unknown rows.
 
 The primary Delivery 3 split is V1 seed `37`, because the historical baselines are available there. Split V2 is reserved only for a method satisfying the predeclared V1 progression criteria.
 
@@ -101,6 +115,16 @@ Delivery 3 is exploratory and does not provide final confirmatory validation. A 
 - Criterion C: a predeclared subgroup has delta AUROC at least `+0.03` without severe overall OSR degradation.
 
 If all defensible variants have delta AUROC `<= 0`, delta FPR@95TPR `>= 0`, and no predeclared subgroup shows a credible complementary effect, the recommendation is to stop TDA method development rather than run an open-ended representation search.
+
+## Delivery 4 Decision Rule
+
+Delivery 4 is exploratory method development, not final confirmatory validation. A post-hoc method progresses only if it satisfies at least one predeclared criterion on V1:
+
+- Criterion A: delta overall AUROC versus MSP is at least `+0.015` with a favorable paired-bootstrap confidence interval.
+- Criterion B: delta FPR@95TPR versus MSP is at most `-0.075` while delta AUROC is at least `-0.005`.
+- Criterion C: lymphoid-related subgroup delta AUROC is at least `+0.03` without overall AUROC degradation greater than `0.01`.
+
+If no primary method passes these criteria, the scientific recommendation is to proceed to representation learning in a later delivery rather than continue post-hoc score engineering.
 
 ## Near-Duplicate Sensitivity
 

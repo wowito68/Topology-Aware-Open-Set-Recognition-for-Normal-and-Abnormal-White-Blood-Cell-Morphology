@@ -1,0 +1,74 @@
+seed: 37
+status: exploratory_method_development
+representation_policy:
+  checkpoint_path: artifacts/checkpoints/resnet18_seed37/best_checkpoint.pt
+  checkpoint_sha256: 7fb2e2a6741a4fcd1b7d9e3a985ab136fa0550741b69dcd62f0f21c28b6ae39d
+  embeddings_path: artifacts/embeddings/resnet18_seed37_embeddings.npz
+  embedding_dim: 512
+  manifest_hash: 4b8da8df49655b6f04b53aa75a912f0efceac776d81761b2b45b68c440c27bae
+  frozen: true
+  representation_learning_allowed: false
+  prohibited:
+    - SupCon
+    - ArcFace
+    - triplet_loss
+    - new_cnn_training
+    - fine_tuning
+tda_policy:
+  method_development: stopped
+  role: historical_negative_or_complementary_ablation_only
+split_protocol:
+  primary_split: V1
+  fit_split: known_train_only
+  calibration_split: known_validation_only
+  final_test_split: test
+  unknown_test_usage: reporting_only
+  target_known_recall: 0.95
+matrix_path: configs/experiment/delivery4_predeclared_matrix.json
+output_dir: artifacts/metrics/delivery4
+figures_dir: artifacts/figures/delivery4
+methods:
+  primary:
+    - msp
+    - energy_T1
+    - ncm_euclidean
+    - ncm_cosine
+    - knn_cosine_k5
+    - regularized_mahalanobis_ledoit_wolf
+    - relative_mahalanobis_ledoit_wolf_class_minus_global
+    - react_energy_p90
+    - vim_pca_95pct_variance
+  secondary:
+    - entropy
+    - energy_T0_5
+    - energy_T2
+    - knn_cosine_k1
+    - knn_cosine_k10
+    - historical_mahalanobis
+    - react_energy_p85
+    - react_energy_p95
+    - dice_skipped_unless_rigorous
+progression_criteria:
+  criterion_a: delta_AUROC_vs_MSP >= 0.015 with favorable paired bootstrap CI
+  criterion_b: delta_FPR95_vs_MSP <= -0.075 and delta_AUROC_vs_MSP >= -0.005
+  criterion_c: lymphoid_related_delta_AUROC >= 0.03 without overall_AUROC_degradation_gt_0.01
+required_tables:
+  - artifacts/metrics/delivery4/method_comparison.csv
+  - artifacts/metrics/delivery4/per_unknown_class.csv
+  - artifacts/metrics/delivery4/embedding_geometry.csv
+  - artifacts/metrics/delivery4/embedding_compactness.csv
+  - artifacts/metrics/delivery4/unknown_to_known_attractor.csv
+  - artifacts/metrics/delivery4/subgroup_results.csv
+  - artifacts/metrics/delivery4/paired_bootstrap.json
+  - artifacts/metrics/delivery4/progression_decision.json
+required_figures:
+  - artifacts/figures/delivery4/open_set_roc_delivery4.png
+  - artifacts/figures/delivery4/open_set_fpr95_delivery4.png
+  - artifacts/figures/delivery4/open_set_oscr_delivery4.png
+  - artifacts/figures/delivery4/delta_auroc_vs_msp.png
+  - artifacts/figures/delivery4/per_unknown_auroc_delivery4.png
+  - artifacts/figures/delivery4/unknown_to_known_attractor_heatmap.png
+  - artifacts/figures/delivery4/embedding_distance_distributions.png
+  - artifacts/figures/delivery4/lymphoid_knn_distance_distributions.png
+  - artifacts/figures/delivery4/neutrophil_band_method_comparison.png
+  - artifacts/figures/delivery4/known_unknown_score_distributions_best_method.png
