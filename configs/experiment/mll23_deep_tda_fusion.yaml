@@ -1,0 +1,53 @@
+name: mll23_deep_tda_fusion
+task: deep_tda_fusion
+seed: 13
+device: auto
+precision: amp
+dataset: mll23
+image_size: 224
+batch_size: 32
+num_workers: 4
+backbone: resnet18
+pretrained: true
+optimizer: adamw
+learning_rate: 0.001
+weight_decay: 0.0001
+epochs: 30
+early_stopping:
+  patience: 5
+scheduler:
+  name: cosine
+augmentation:
+  horizontal_flip_p: 0.5
+  vertical_flip_p: 0.0
+  rotation_degrees: 10.0
+  brightness: 0.05
+  contrast: 0.05
+known_classes:
+  - basophil
+  - eosinophil
+  - lymphocyte
+  - monocyte
+  - neutrophil_segmented
+unknown_classes:
+  - myeloblast
+  - promyelocyte
+  - promyelocyte_atypical
+  - myelocyte
+  - metamyelocyte
+  - hairy_cell
+  - lymphocyte_neoplastic
+  - lymphocyte_large_granular
+  - lymphocyte_reactive
+  - plasma_cell
+  - smudge_cell
+  - normoblast
+  - neutrophil_band
+open_set_method: msp
+tda:
+  filtration: sublevel
+  homology_dimensions: [0, 1]
+  vectorizer: persistence-entropy
+  cache_dir: artifacts/topology
+output_dir: artifacts/checkpoints/mll23_deep_tda_fusion
+

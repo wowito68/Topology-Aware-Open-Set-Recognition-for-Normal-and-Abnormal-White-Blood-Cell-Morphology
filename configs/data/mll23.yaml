@@ -1,0 +1,27 @@
+dataset: mll23
+root: data/raw/mll23
+manifest: data/manifests/mll23_split.csv
+image_size: 224
+batch_size: 32
+num_workers: 4
+known_classes:
+  - basophil
+  - eosinophil
+  - lymphocyte
+  - monocyte
+  - neutrophil_segmented
+unknown_classes:
+  - myeloblast
+  - promyelocyte
+  - promyelocyte_atypical
+  - myelocyte
+  - metamyelocyte
+  - hairy_cell
+  - lymphocyte_neoplastic
+  - lymphocyte_large_granular
+  - lymphocyte_reactive
+  - plasma_cell
+  - smudge_cell
+  - normoblast
+  - neutrophil_band
+

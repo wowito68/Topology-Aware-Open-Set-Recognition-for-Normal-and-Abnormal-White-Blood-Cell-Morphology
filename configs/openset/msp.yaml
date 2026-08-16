@@ -1,0 +1,4 @@
+open_set_method: msp
+target_known_recall: 0.95
+threshold_protocol: strict_open_set
+

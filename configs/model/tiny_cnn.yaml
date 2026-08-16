@@ -1,0 +1,3 @@
+backbone: tiny_cnn
+pretrained: false
+

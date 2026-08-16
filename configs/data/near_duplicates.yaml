@@ -1,0 +1,14 @@
+near_duplicates:
+  hash_size: 8
+  candidate_hamming_max: 0
+  max_pairwise_pairs: 2000000
+  level1_hamming_max: 1
+  level1_ssim_min: 0.985
+  level1_correlation_min: 0.985
+  level2_hamming_max: 4
+  level2_ssim_min: 0.95
+  level2_correlation_min: 0.95
+  group_evidence_levels:
+    - confirmed
+    - probable_level1
+  compare_image_size: 128

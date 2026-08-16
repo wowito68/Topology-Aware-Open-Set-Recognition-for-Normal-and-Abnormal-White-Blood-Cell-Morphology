@@ -1,0 +1,20 @@
+optimizer: adamw
+learning_rate: 0.001
+weight_decay: 0.0001
+epochs: 30
+early_stopping:
+  patience: 5
+  monitor: validation_balanced_accuracy
+  mode: max
+scheduler:
+  name: cosine
+  warmup_epochs: 0
+augmentation:
+  horizontal_flip_p: 0.5
+  vertical_flip_p: 0.0
+  rotation_degrees: 10.0
+  brightness: 0.05
+  contrast: 0.05
+imbalance_strategy: none
+gradient_clip_norm: 1.0
+

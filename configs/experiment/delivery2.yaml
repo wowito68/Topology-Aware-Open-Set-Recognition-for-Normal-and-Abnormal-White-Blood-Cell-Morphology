@@ -1,0 +1,47 @@
+name: delivery2_tda_fusion
+seed: 37
+manifest_v1: data/manifests/mll23_split_seed37.csv
+manifest_v2: data/manifests/mll23_seed37_v2_conservative.csv
+known_classes:
+  - basophil
+  - eosinophil
+  - lymphocyte
+  - monocyte
+  - neutrophil_segmented
+unknown_classes:
+  - hairy_cell
+  - lymphocyte_large_granular
+  - lymphocyte_neoplastic
+  - lymphocyte_reactive
+  - metamyelocyte
+  - myeloblast
+  - myelocyte
+  - neutrophil_band
+  - normoblast
+  - plasma_cell
+  - promyelocyte
+  - promyelocyte_atypical
+  - smudge_cell
+near_duplicates:
+  config: configs/data/near_duplicates.yaml
+  output_dir: artifacts/data_audit/near_duplicates
+tda:
+  benchmark_sample_size: 1000
+  benchmark_resolutions: [64, 96, 128]
+  filtrations: [sublevel, superlevel]
+  homology_dimensions: [0, 1]
+  infinite_interval_policy: keep essential bars in diagram cache; vectorizers exclude them
+  vectorizers:
+    - persistence-entropy
+    - betti-curve
+    - persistence-landscape
+    - persistence-image
+fusion:
+  hidden_dim: 128
+  dropout: 0.1
+  epochs: 50
+  early_stopping_patience: 8
+  batch_size: 256
+  learning_rate: 0.001
+bootstrap:
+  n_bootstraps: 1000

@@ -1,0 +1,14 @@
+defaults:
+  - data: mll23
+  - model: resnet18
+  - tda: default
+  - openset: msp
+  - training: default
+  - experiment: mll23_open_set
+  - _self_
+
+seed: 13
+device: auto
+precision: fp32
+output_dir: artifacts
+

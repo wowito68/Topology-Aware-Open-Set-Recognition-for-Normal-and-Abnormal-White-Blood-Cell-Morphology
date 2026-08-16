@@ -1,0 +1,7 @@
+tda:
+  filtration: sublevel
+  homology_dimensions: [0, 1]
+  image_size: 64
+  vectorizer: persistence-entropy
+  cache_dir: artifacts/topology
+

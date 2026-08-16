@@ -1,0 +1,46 @@
+name: mll23_tda
+task: tda_only
+seed: 13
+device: cpu
+precision: fp32
+dataset: mll23
+image_size: 64
+batch_size: 32
+num_workers: 4
+backbone: null
+pretrained: false
+optimizer: lbfgs
+learning_rate: 0.001
+weight_decay: 0.0
+epochs: 0
+early_stopping: null
+scheduler: null
+augmentation: null
+known_classes:
+  - basophil
+  - eosinophil
+  - lymphocyte
+  - monocyte
+  - neutrophil_segmented
+unknown_classes:
+  - myeloblast
+  - promyelocyte
+  - promyelocyte_atypical
+  - myelocyte
+  - metamyelocyte
+  - hairy_cell
+  - lymphocyte_neoplastic
+  - lymphocyte_large_granular
+  - lymphocyte_reactive
+  - plasma_cell
+  - smudge_cell
+  - normoblast
+  - neutrophil_band
+open_set_method: mahalanobis
+tda:
+  filtration: sublevel
+  homology_dimensions: [0, 1]
+  vectorizer: persistence-entropy
+  classifier: logistic_regression
+output_dir: artifacts/topology/mll23_tda
+
