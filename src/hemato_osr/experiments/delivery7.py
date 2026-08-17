@@ -404,19 +404,42 @@ def evaluate_external_run(
     external_embedding_path: Path,
     checkpoint_path: Path,
     external_manifest: pd.DataFrame,
-) -> tuple[list[dict[str, Any]], pd.DataFrame]:
+) -> tuple[list[dict[str, Any]], pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Evaluate one frozen run externally with MSP and ViM."""
 
     internal = load_embeddings(internal_embedding_path)
     external = load_embeddings(external_embedding_path)
     assert_no_external_fit(external)
-    closed, _per_class = _external_closed_metrics(external)
+    closed, closed_per_class = _external_closed_metrics(external)
     rows: list[dict[str, Any]] = []
     per_unknown_frames = []
     checkpoint_hash = _sha256_file(checkpoint_path)
     external_known_n = int(np.sum(external.known_status == KNOWN))
     external_unknown_n = int(np.sum(external.known_status != KNOWN))
     manifest_lookup = external_manifest.set_index("sample_id")
+    closed_per_class = closed_per_class.assign(
+        external_dataset="AML-Cytomorphology_LMU",
+        training_split=spec.split,
+        seed=spec.seed,
+        representation=spec.representation,
+        checkpoint_hash=checkpoint_hash,
+    )
+    confusion_rows = []
+    confusion = np.asarray(closed["confusion_matrix"], dtype=int)
+    for true_idx, true_class in enumerate(DEFAULT_KNOWN_CLASSES):
+        for pred_idx, pred_class in enumerate(DEFAULT_KNOWN_CLASSES):
+            confusion_rows.append(
+                {
+                    "external_dataset": "AML-Cytomorphology_LMU",
+                    "training_split": spec.split,
+                    "seed": spec.seed,
+                    "representation": spec.representation,
+                    "true_class": true_class,
+                    "predicted_class": pred_class,
+                    "n": int(confusion[true_idx, pred_idx]),
+                    "checkpoint_hash": checkpoint_hash,
+                }
+            )
     for method in DELIVERY7_OSR_METHODS:
         internal_scores, external_scores, score_ms, state = _fit_internal_score_external(
             internal,
@@ -463,7 +486,12 @@ def evaluate_external_run(
                 manifest_lookup=manifest_lookup,
             )
         )
-    return rows, pd.concat(per_unknown_frames, ignore_index=True)
+    return (
+        rows,
+        pd.concat(per_unknown_frames, ignore_index=True),
+        closed_per_class,
+        pd.DataFrame(confusion_rows),
+    )
 
 
 def external_per_unknown_rows(
@@ -616,6 +644,8 @@ def run_external_evaluation(paths: Delivery7Paths) -> Path:
     external_manifest = pd.read_csv(paths.external_manifest_path)
     rows: list[dict[str, Any]] = []
     per_unknown_frames = []
+    closed_per_class_frames = []
+    confusion_frames = []
     for spec in build_run_matrix():
         checkpoint = paths.checkpoint_dir / spec.run_id / "best_checkpoint.pt"
         internal_embedding = paths.internal_embedding_dir / f"{spec.run_id}_embeddings.npz"
@@ -627,7 +657,7 @@ def run_external_evaluation(paths: Delivery7Paths) -> Path:
         ):
             msg = f"Missing frozen artifact for external evaluation of {spec.run_id}"
             raise FileNotFoundError(msg)
-        run_rows, per_unknown = evaluate_external_run(
+        run_rows, per_unknown, closed_per_class, confusion = evaluate_external_run(
             spec,
             internal_embedding_path=internal_embedding,
             external_embedding_path=external_embedding,
@@ -636,6 +666,8 @@ def run_external_evaluation(paths: Delivery7Paths) -> Path:
         )
         rows.extend(run_rows)
         per_unknown_frames.append(per_unknown)
+        closed_per_class_frames.append(closed_per_class)
+        confusion_frames.append(confusion)
     paths.metrics_dir.mkdir(parents=True, exist_ok=True)
     run_level = pd.DataFrame(rows)
     run_level.to_csv(paths.metrics_dir / "external_run_level_results.csv", index=False)
@@ -650,6 +682,16 @@ def run_external_evaluation(paths: Delivery7Paths) -> Path:
     if per_unknown_frames:
         pd.concat(per_unknown_frames, ignore_index=True).to_csv(
             paths.metrics_dir / "external_per_unknown_class.csv",
+            index=False,
+        )
+    if closed_per_class_frames:
+        pd.concat(closed_per_class_frames, ignore_index=True).to_csv(
+            paths.metrics_dir / "external_closed_per_class.csv",
+            index=False,
+        )
+    if confusion_frames:
+        pd.concat(confusion_frames, ignore_index=True).to_csv(
+            paths.metrics_dir / "external_closed_confusion_matrix.csv",
             index=False,
         )
     delivery6 = pd.read_csv(Path("artifacts/metrics/delivery6/run_level_results.csv"))
