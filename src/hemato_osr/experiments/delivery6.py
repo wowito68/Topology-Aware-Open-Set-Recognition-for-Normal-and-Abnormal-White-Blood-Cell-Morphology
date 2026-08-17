@@ -340,6 +340,13 @@ def _epochs_completed(log_path: Path) -> int:
     return int(len(pd.read_csv(log_path)))
 
 
+def _prepare_epoch_log_for_fresh_training(log_path: Path) -> None:
+    """Remove stale epoch logs before a non-resumed training run."""
+
+    if log_path.exists():
+        log_path.unlink()
+
+
 def train_delivery6_run(
     spec: Delivery6RunSpec,
     paths: Delivery6Paths,
@@ -360,6 +367,7 @@ def train_delivery6_run(
     if skip_completed and checkpoint.exists() and (output_dir / "training_summary.json").exists():
         return checkpoint
     log_path = paths.logs_dir / f"{spec.run_id}.log"
+    _prepare_epoch_log_for_fresh_training(log_path)
     epochs = 1 if smoke else 30
     smoke_per_class = 8 if smoke else None
     if spec.representation == "ce":

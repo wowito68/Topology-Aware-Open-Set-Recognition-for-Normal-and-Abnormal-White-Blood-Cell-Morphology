@@ -11,6 +11,7 @@ from hemato_osr.experiments.delivery6 import (
     CE_CONFIG_HASH,
     DELIVERY6_SEEDS,
     LOCKED_ARCFACE_CONFIG,
+    _prepare_epoch_log_for_fresh_training,
     assert_locked_configs,
     assert_resume_compatible,
     build_run_matrix,
@@ -117,6 +118,15 @@ def test_resume_metadata_rejects_cross_seed_reuse(tmp_path) -> None:
     path.write_text(json.dumps(metadata), encoding="utf-8")
     with pytest.raises(ValueError, match="Resume metadata mismatch"):
         assert_resume_compatible(path, spec)
+
+
+def test_fresh_training_removes_stale_epoch_log(tmp_path) -> None:
+    log_path = tmp_path / "run.log"
+    log_path.write_text("epoch,metric\n0,1.0\n", encoding="utf-8")
+
+    _prepare_epoch_log_for_fresh_training(log_path)
+
+    assert not log_path.exists()
 
 
 def test_t_ci_uses_seed_level_t_interval() -> None:
