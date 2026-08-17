@@ -157,6 +157,40 @@ Delivery 5 progression criteria:
 
 If neither SupCon nor ArcFace passes A/B/C, no new metric-learning loss family is launched automatically; the decision moves to external-domain validation of the strongest existing system.
 
+## Delivery 6 Confirmatory Stability Analysis
+
+Delivery 6 is a confirmatory stability analysis within MLL23 for the frozen Delivery 5
+candidate `ArcFace + MSP`. It is not external validation. The method is locked: ResNet18
+ImageNet initialization family, 224x224 inputs, AdamW, learning rate `0.0003`, weight
+decay `0.0001`, batch size `64`, AMP, weighted CE, max `30` epochs, known-validation
+macro-F1 checkpoint selection, ArcFace scale `30`, and ArcFace margin `0.30`.
+
+The predeclared run matrix is exactly 20 training runs: seeds `13`, `37`, `73`, `101`,
+and `137`; splits V1 and V2; representations CE and ArcFace. V1 uses manifest hash
+`4b8da8df49655b6f04b53aa75a912f0efceac776d81761b2b45b68c440c27bae`; V2 uses
+`81ca3db900f788a0446f80ea5d36e8766d8ca050404b755111b3ca898f809026`. These splits must
+not be regenerated. Matched comparisons are ArcFace(seed, split) minus CE(seed, split).
+
+The only OSR scores are MSP and ViM. ViM is fit independently per run using known-train
+embeddings/logits only. Unknown-test samples are used only after models are frozen for
+reporting, class-level stability, geometry, and attractor analysis. Statistical summaries
+use seed-level matched deltas as the unit of replication; image-level bootstrap must not be
+presented as multiseed evidence.
+
+ArcFace is considered a reproducible primary method only if criteria A, C, D, and E pass.
+Criterion A requires V1 mean Delta AUROC `>= +0.015` and a favorable t-based 95% CI over
+the five seed-level deltas. Criterion C requires at least four of five V1 seeds to have
+positive Delta AUROC. Criterion D requires V2 mean Delta AUROC `>= -0.01` and at least
+three of five V2 seeds with nonnegative Delta AUROC. Criterion E requires every ArcFace
+run to have macro-F1 `>= 0.9616`, or no ArcFace run to be more than `0.01` absolute below
+its matched CE run. Criterion B, mean Delta FPR95 `<= -0.075` with favorable CI, strengthens
+the claim but is not mandatory if AUROC evidence is strong.
+
+If ArcFace fails confirmation, no additional margin, loss, backbone, scorer, TDA variant,
+or SupCon rerun is launched automatically. The next step becomes external validation of
+the strongest stable baseline or an external comparison of CE and ArcFace if the internal
+evidence is mixed.
+
 ## Near-Duplicate Sensitivity
 
 pHash collisions are treated as candidate near-duplicates, not ground truth. The audit uses a multi-stage evidence score:

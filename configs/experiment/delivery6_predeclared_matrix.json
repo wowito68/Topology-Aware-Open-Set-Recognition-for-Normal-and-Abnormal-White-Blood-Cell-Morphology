@@ -1,0 +1,127 @@
+{
+  "arcface_config_hash": "bda304d847e6cd2c",
+  "ce_config_hash": "2d9d5aa0027e6f49",
+  "closed_set_safeguard": {
+    "alternative": "ArcFace known-test macro-F1 no more than 0.01 absolute below matched CE",
+    "primary": "every ArcFace run has known-test macro-F1 >= 0.9616"
+  },
+  "confidence_interval": {
+    "method": "t-based 95% CI over seed-level matched deltas",
+    "statistical_unit": "training seed/run, not individual images"
+  },
+  "decision_rule": "ArcFace becomes the proposed primary method only if criteria A, C, D, and E pass; criterion B strengthens the claim but is not strictly mandatory if AUROC evidence is strong.",
+  "delivery_status": "confirmatory_stability_analysis_within_MLL23",
+  "forbidden_changes": [
+    "change ArcFace margin",
+    "change ArcFace scale",
+    "change learning rate",
+    "change optimizer",
+    "change augmentation family",
+    "change backbone",
+    "add losses",
+    "add OSR scorers",
+    "run TDA",
+    "run SupCon again",
+    "drop bad seeds",
+    "drop V2",
+    "regenerate manifests"
+  ],
+  "locked_configs": {
+    "arcface": {
+      "backbone": "resnet18",
+      "batch_size": 64,
+      "checkpoint_selection": "known-validation macro-F1",
+      "early_stopping_patience": 7,
+      "embedding_dimension": 512,
+      "image_size": 224,
+      "imbalance_strategy": "weighted-cross-entropy",
+      "initialization": "ImageNet pretrained torchvision ResNet18 family",
+      "learning_rate": 0.0003,
+      "loss": "ArcFace-style additive angular margin",
+      "margin": 0.3,
+      "max_epochs": 30,
+      "optimizer": "AdamW",
+      "precision": "AMP",
+      "scale": 30.0,
+      "weight_decay": 0.0001
+    },
+    "ce": {
+      "backbone": "resnet18",
+      "batch_size": 64,
+      "checkpoint_selection": "known-validation macro-F1",
+      "early_stopping_patience": 7,
+      "image_size": 224,
+      "imbalance_strategy": "weighted-cross-entropy",
+      "initialization": "ImageNet pretrained torchvision ResNet18 family",
+      "learning_rate": 0.0003,
+      "loss": "weighted cross entropy",
+      "max_epochs": 30,
+      "optimizer": "AdamW",
+      "precision": "AMP",
+      "weight_decay": 0.0001
+    }
+  },
+  "manifests": {
+    "V1": {
+      "hash": "4b8da8df49655b6f04b53aa75a912f0efceac776d81761b2b45b68c440c27bae",
+      "path": "data/manifests/mll23_split_seed37.csv"
+    },
+    "V2": {
+      "hash": "81ca3db900f788a0446f80ea5d36e8766d8ca050404b755111b3ca898f809026",
+      "path": "data/manifests/mll23_seed37_v2_conservative.csv"
+    }
+  },
+  "osr_methods": [
+    "msp",
+    "vim"
+  ],
+  "primary_candidate": "ArcFace + MSP",
+  "progression_criteria": {
+    "criterion_a": "Across V1 matched seed pairs, mean Delta AUROC >= +0.015 and t-based 95% CI excludes 0 favorably.",
+    "criterion_b": "Across V1 matched seed pairs, mean Delta FPR95 <= -0.075 and t-based 95% CI excludes 0 favorably.",
+    "criterion_c": "At least 4 of 5 V1 seeds have Delta AUROC > 0 for ArcFace + MSP versus CE + MSP.",
+    "criterion_d": "V2 mean Delta AUROC >= -0.01 and at least 3 of 5 V2 seeds have Delta AUROC >= 0.",
+    "criterion_e": "Every ArcFace run has macro-F1 >= 0.9616, or no ArcFace run is more than 0.01 absolute below matched CE."
+  },
+  "representations": [
+    "ce",
+    "arcface"
+  ],
+  "run_matrix": {
+    "expected_runs": 20,
+    "seeds": [
+      13,
+      37,
+      73,
+      101,
+      137
+    ],
+    "splits": [
+      "V1",
+      "V2"
+    ]
+  },
+  "score_orientation": "larger means more UNKNOWN-like",
+  "unknown_groups": {
+    "immature_related_myeloid": [
+      "myeloblast",
+      "promyelocyte",
+      "promyelocyte_atypical",
+      "myelocyte",
+      "metamyelocyte",
+      "neutrophil_band"
+    ],
+    "lymphoid_related": [
+      "lymphocyte_large_granular",
+      "lymphocyte_neoplastic",
+      "lymphocyte_reactive",
+      "hairy_cell",
+      "plasma_cell"
+    ],
+    "other": [
+      "normoblast",
+      "smudge_cell"
+    ]
+  },
+  "unknown_usage": "unknown test samples are evaluation and analysis only; they never influence training, checkpoint selection, threshold fitting, ViM fitting, or method selection"
+}
