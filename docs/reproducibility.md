@@ -53,6 +53,17 @@ Delivery 4 extends the sequence without retraining and without new TDA developme
 9. Generate per-unknown-class, subgroup, bootstrap, efficiency, data-usage, and embedding-geometry reports.
 10. Run V2 or multiseed confirmation only if a primary method passes the predeclared Delivery 4 progression rule.
 
+Delivery 5 extends the sequence with representation training:
+
+1. Persist `configs/experiment/delivery5_predeclared_matrix.json` before unknown evaluation.
+2. Verify the historical CE checkpoint and embedding archive hashes.
+3. Run one-epoch GPU smoke training for SupCon and ArcFace on a small known-train subset.
+4. Train SupCon and ArcFace sequentially under tmux on AWS, using seed `37` and known-validation checkpoint selection only.
+5. Export logits and 512-dimensional embeddings for all samples from each trained representation.
+6. Evaluate CE, SupCon, and ArcFace with the fixed scorers MSP, Energy `T=1`, cosine kNN `k=5`, and ViM.
+7. Recompute known geometry, unknown geometry, attractor matrices, per-unknown-class metrics, subgroup metrics, and paired bootstrap deltas versus CE+ViM.
+8. Run V2 only for a passing representation/scorer pair; otherwise V2 is not run.
+
 ## Required Metadata
 
 Record git commit, seed, timestamp, Python, PyTorch, CUDA, GPU, manifest hash, exact config, threshold protocol, and class taxonomy.
@@ -65,6 +76,8 @@ Delivery 3 additionally records the frozen checkpoint SHA256, embedding archive 
 
 Delivery 4 additionally records checkpoint SHA256, embedding manifest hash, method config hashes, data-usage audit, fit split, calibration split, strict threshold protocol, ReAct clipping percentile/value, ViM PCA component count and explained variance, covariance estimator, paired-bootstrap seed/count, progression decision, and software environment metadata.
 
+Delivery 5 additionally records representation loss, SupCon lambda/temperature, projection-head dimensions, ArcFace scale/margin, sampler policy, CE weighting policy, checkpoint selection rule, training epochs completed, best epoch, wall-clock time, GPU-hours, peak VRAM, checkpoint SHA256, embedding export forward time, and whether UMAP was available or PCA fallback was used.
+
 ## Multiple Seeds
 
 Delivery 2 uses only seed `37`. Planned future validation seeds are `13`, `37`, `73`, `101`, and `137`, but multiseed evaluation starts only after a final method is selected.
@@ -72,6 +85,8 @@ Delivery 2 uses only seed `37`. Planned future validation seeds are `13`, `37`, 
 Delivery 3 also uses only seed `37` for primary exploratory method development. Multiseed confirmation is explicitly deferred until after the predeclared progression criteria are met.
 
 Delivery 4 also uses only seed `37` for exploratory method development on V1. Multiseed or Split V2 confirmation is explicitly deferred until after a primary post-hoc method passes the predeclared progression criteria.
+
+Delivery 5 also uses only seed `37`. If SupCon or ArcFace passes progression criteria, multiseed and external-domain validation are deferred to Delivery 6 rather than run automatically in Delivery 5.
 
 ## Artifacts
 
@@ -111,3 +126,17 @@ Delivery 4 artifacts are organized under:
 - `artifacts/logs/delivery4/`
 
 Delivery 1, Delivery 2, and Delivery 3 artifacts must not be deleted or overwritten.
+
+Delivery 5 artifacts are organized under:
+
+- `configs/experiment/delivery5.yaml`
+- `configs/experiment/delivery5_predeclared_matrix.json`
+- `artifacts/checkpoints/delivery5/supcon_seed37/`
+- `artifacts/checkpoints/delivery5/arcface_seed37/`
+- `artifacts/embeddings/delivery5/`
+- `artifacts/metrics/delivery5/`
+- `artifacts/figures/delivery5/`
+- `artifacts/logs/delivery5/`
+- `artifacts/benchmarks/delivery5/`
+
+Previous delivery artifacts must not be deleted or overwritten.

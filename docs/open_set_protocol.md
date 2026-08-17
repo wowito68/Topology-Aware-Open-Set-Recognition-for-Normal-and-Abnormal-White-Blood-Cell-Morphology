@@ -14,6 +14,8 @@ Delivery 3 also uses the strict protocol. Candidate-mask QC, feature-map layer s
 
 Delivery 4 uses the same strict protocol but stops TDA method development. All new methods are post-hoc scores over the frozen ResNet18 seed-37 logits or 512-dimensional embeddings. Fit-time statistics are allowed only on known-train rows. Thresholds are calibrated only on known-validation rows. Unknown-test rows are reserved for final reporting and explanatory geometry.
 
+Delivery 5 keeps the strict protocol while changing the learned representation. SupCon and ArcFace train only on known-train images. Known validation may select checkpoints by macro-F1 and known-only geometry tie-breakers. Unknown-test labels are analysis-only and cannot choose lambda, temperature, margin, checkpoint, OSR method, threshold, ViM parameters, or kNN reference banks.
+
 ## Split Protocols
 
 Split V1 is the original seed-37 split used by Delivery 1. Split V2 is a conservative near-duplicate-aware sensitivity split. V2 keeps all unknown samples outside training and moves only samples required by configured high-confidence near-duplicate components.
@@ -85,3 +87,5 @@ Delivery 3 also reports predefined subgroup aggregates:
 Special analyses compare `neutrophil_segmented` versus `neutrophil_band` and inspect lymphocyte-related unknowns. These analyses explain behavior; they do not redefine the primary overall metric.
 
 Delivery 4 reports the same predefined subgroup aggregates and additionally writes embedding geometry tables: per-class nearest known centroid, centroid distance, kNN distance summaries, known-train compactness, class-centroid distance matrix, and unknown-to-known attractor frequencies. These geometry outputs are explanatory only and are not used to choose thresholds or primary methods.
+
+Delivery 5 evaluates each representation with the same fixed OSR scorers: MSP, Energy `T=1`, cosine kNN `k=5`, and ViM. ArcFace inference uses normalized cosine classifier logits without target margin, because ground-truth labels are unavailable at inference time. ViM and kNN are independently fitted per representation using known-train embeddings only. All scores retain the convention that larger values are more unknown-like.

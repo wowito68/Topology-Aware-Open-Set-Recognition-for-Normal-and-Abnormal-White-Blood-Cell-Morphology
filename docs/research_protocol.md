@@ -26,6 +26,13 @@ Delivery 4 stops TDA method development and asks post-hoc open-set questions ove
 - `RQ9`: Which unknown morphologies remain hard, and are the failures concentrated in biologically adjacent morphology families?
 - `RQ10`: Is poor OSR performance associated with unknown samples lying close to known-class embedding manifolds or nearest known attractors?
 
+Delivery 5 moves from post-hoc scoring to exploratory representation development:
+
+- `RQ11`: Can representation learning explicitly designed to improve intra-class compactness and inter-class separation improve open-set recognition of unseen hematological morphologies?
+- `RQ12`: Does supervised contrastive representation learning improve unknown detection without materially degrading closed-set classification?
+- `RQ13`: Does an angular-margin representation improve separation of morphologically related known and unknown blood cells?
+- `RQ14`: Are improvements in OSR associated with measurable changes in embedding geometry?
+
 ## Hypotheses
 
 - Deep embeddings provide strong closed-set morphology discrimination.
@@ -125,6 +132,30 @@ Delivery 4 is exploratory method development, not final confirmatory validation.
 - Criterion C: lymphoid-related subgroup delta AUROC is at least `+0.03` without overall AUROC degradation greater than `0.01`.
 
 If no primary method passes these criteria, the scientific recommendation is to proceed to representation learning in a later delivery rather than continue post-hoc score engineering.
+
+## Delivery 5 Representation Matrix
+
+Delivery 5 is exploratory representation development, not independent confirmation, because the MLL23 unknown set has been inspected in previous deliveries. Unknown images and labels remain excluded from training, lambda selection, margin selection, checkpoint selection, threshold fitting, ViM fitting, kNN reference construction, and OSR method selection.
+
+The controlled representation matrix is:
+
+- Historical CE ResNet18 representation.
+- ResNet18 trained with `CE + 0.50 * SupCon`, SupCon temperature `0.10`, and a `512 -> 256 -> 128` normalized projection head. The primary OSR representation remains the 512-dimensional backbone embedding.
+- ResNet18 trained with ArcFace-style additive angular margin, scale `30`, margin `0.30`, and normalized 512-dimensional embeddings/classifier weights.
+
+No additional losses are introduced in Delivery 5. CosFace is reserved as optional secondary infrastructure only if it does not expand the experiment; it is not part of the minimum primary matrix.
+
+Each representation is evaluated with the fixed OSR scorers `MSP`, `Energy T=1`, `kNN cosine k=5`, and `ViM`. ViM and kNN are refit independently per representation using known train only.
+
+The internal progression baseline is CE representation + ViM from Delivery 4, with AUROC `0.872604` and FPR@95TPR `0.514223`. A representation cannot progress if known-test macro-F1 is below `0.9616`.
+
+Delivery 5 progression criteria:
+
+- Criterion A: best predeclared representation/scorer delta AUROC versus CE+ViM is at least `+0.015` with favorable paired-bootstrap confidence interval.
+- Criterion B: delta FPR@95TPR versus CE+ViM is at most `-0.075`, delta AUROC is at least `-0.005`, and the closed-set safeguard passes.
+- Criterion C: lymphoid-related subgroup delta AUROC is at least `+0.03` versus the best CE scorer, overall AUROC degradation is at most `0.01`, and the closed-set safeguard passes.
+
+If neither SupCon nor ArcFace passes A/B/C, no new metric-learning loss family is launched automatically; the decision moves to external-domain validation of the strongest existing system.
 
 ## Near-Duplicate Sensitivity
 

@@ -47,6 +47,15 @@ from hemato_osr.experiments.delivery4 import (
 from hemato_osr.experiments.delivery4 import (
     write_predeclared_matrix as write_delivery4_predeclared_matrix,
 )
+from hemato_osr.experiments.delivery5 import (
+    Delivery5Config,
+    Delivery5V2Config,
+    evaluate_delivery5,
+    evaluate_delivery5_v2,
+)
+from hemato_osr.experiments.delivery5 import (
+    write_predeclared_matrix as write_delivery5_predeclared_matrix,
+)
 from hemato_osr.models.tda_baseline import TDAOnlyExperimentConfig, evaluate_tda_only
 from hemato_osr.smoke import SmokeConfig, run_smoke_test
 from hemato_osr.topology.extract import TDAExtractConfig, extract_tda_features
@@ -63,6 +72,11 @@ from hemato_osr.training.fusion_train import (
     FusionTrainConfig,
     train_frozen_fusion,
     train_fusion,
+)
+from hemato_osr.training.representation import (
+    RepresentationTrainConfig,
+    export_representation_embeddings,
+    train_representation_model,
 )
 from hemato_osr.training.train import TrainConfig, train_closed_set
 
@@ -327,6 +341,64 @@ def build_parser() -> argparse.ArgumentParser:
     d4_eval.add_argument("--matrix", type=Path, required=True)
     d4_eval.add_argument("--output-dir", type=Path, required=True)
     d4_eval.add_argument("--seed", type=int, default=37)
+
+    delivery5 = subcommands.add_parser("delivery5")
+    d5_sub = delivery5.add_subparsers(dest="delivery5_command", required=True)
+    d5_predeclare = d5_sub.add_parser("predeclare")
+    d5_predeclare.add_argument("--output", type=Path, required=True)
+
+    d5_train = d5_sub.add_parser("train")
+    d5_train.add_argument("--manifest", type=Path, required=True)
+    d5_train.add_argument("--output-dir", type=Path, required=True)
+    d5_train.add_argument(
+        "--representation", choices=["supcon", "arcface", "cosface"], required=True
+    )
+    d5_train.add_argument("--backbone", default="resnet18")
+    d5_train.add_argument("--image-size", type=int, default=224)
+    d5_train.add_argument("--batch-size", type=int, default=64)
+    d5_train.add_argument("--num-workers", type=int, default=4)
+    d5_train.add_argument("--epochs", type=int, default=30)
+    d5_train.add_argument("--learning-rate", type=float, default=3e-4)
+    d5_train.add_argument("--weight-decay", type=float, default=1e-4)
+    d5_train.add_argument("--early-stopping-patience", type=int, default=7)
+    d5_train.add_argument("--precision", choices=["fp32", "amp"], default="amp")
+    d5_train.add_argument("--device", default="auto")
+    d5_train.add_argument("--supcon-lambda", type=float, default=0.50)
+    d5_train.add_argument("--supcon-temperature", type=float, default=0.10)
+    d5_train.add_argument("--pk-classes", type=int, default=5)
+    d5_train.add_argument("--pk-examples", type=int, default=12)
+    d5_train.add_argument("--angular-scale", type=float, default=30.0)
+    d5_train.add_argument("--angular-margin", type=float, default=0.30)
+    d5_train.add_argument("--ce-weighting", choices=["auto", "weighted", "none"], default="auto")
+    d5_train.add_argument("--smoke-max-train-per-class", type=int, default=None)
+    d5_train.add_argument("--log-file", type=Path, default=None)
+
+    d5_export = d5_sub.add_parser("export-embeddings")
+    d5_export.add_argument("--manifest", type=Path, required=True)
+    d5_export.add_argument("--checkpoint", type=Path, required=True)
+    d5_export.add_argument("--output", type=Path, required=True)
+    d5_export.add_argument("--batch-size", type=int, default=64)
+    d5_export.add_argument("--num-workers", type=int, default=4)
+    d5_export.add_argument("--image-size", type=int, default=None)
+    d5_export.add_argument("--device", default="auto")
+
+    d5_eval = d5_sub.add_parser("evaluate")
+    d5_eval.add_argument("--ce-embeddings", type=Path, required=True)
+    d5_eval.add_argument("--supcon-embeddings", type=Path, required=True)
+    d5_eval.add_argument("--arcface-embeddings", type=Path, required=True)
+    d5_eval.add_argument("--output-dir", type=Path, required=True)
+    d5_eval.add_argument("--ce-checkpoint", type=Path, default=None)
+    d5_eval.add_argument("--supcon-checkpoint", type=Path, default=None)
+    d5_eval.add_argument("--arcface-checkpoint", type=Path, default=None)
+    d5_eval.add_argument("--seed", type=int, default=37)
+
+    d5_v2 = d5_sub.add_parser("evaluate-v2")
+    d5_v2.add_argument("--ce-embeddings", type=Path, required=True)
+    d5_v2.add_argument("--candidate-embeddings", type=Path, required=True)
+    d5_v2.add_argument("--output-dir", type=Path, required=True)
+    d5_v2.add_argument("--candidate-representation", default="arcface")
+    d5_v2.add_argument("--osr-method", default="msp")
+    d5_v2.add_argument("--seed", type=int, default=37)
     return parser
 
 
@@ -699,6 +771,87 @@ def main(argv: list[str] | None = None) -> None:
                 checkpoint_path=args.checkpoint,
                 matrix_path=args.matrix,
                 output_dir=args.output_dir,
+                seed=args.seed,
+            )
+        )
+        print(output)
+        return
+
+    if args.command == "delivery5" and args.delivery5_command == "predeclare":
+        output = write_delivery5_predeclared_matrix(args.output)
+        print(output)
+        return
+
+    if args.command == "delivery5" and args.delivery5_command == "train":
+        ce_weighting = args.ce_weighting
+        if ce_weighting == "auto":
+            ce_weighting = "none" if args.representation == "supcon" else "weighted"
+        output = train_representation_model(
+            RepresentationTrainConfig(
+                manifest_path=args.manifest,
+                output_dir=args.output_dir,
+                representation=args.representation,
+                backbone=args.backbone,
+                image_size=args.image_size,
+                batch_size=args.batch_size,
+                num_workers=args.num_workers,
+                epochs=args.epochs,
+                learning_rate=args.learning_rate,
+                weight_decay=args.weight_decay,
+                early_stopping_patience=args.early_stopping_patience,
+                precision=args.precision,
+                device=args.device,
+                supcon_lambda=args.supcon_lambda,
+                supcon_temperature=args.supcon_temperature,
+                pk_classes=args.pk_classes,
+                pk_examples=args.pk_examples,
+                angular_scale=args.angular_scale,
+                angular_margin=args.angular_margin,
+                ce_weighting=ce_weighting,
+                smoke_max_train_per_class=args.smoke_max_train_per_class,
+                log_path=args.log_file,
+            )
+        )
+        print(output)
+        return
+
+    if args.command == "delivery5" and args.delivery5_command == "export-embeddings":
+        output = export_representation_embeddings(
+            args.manifest,
+            args.checkpoint,
+            args.output,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            image_size=args.image_size,
+            device=args.device,
+        )
+        print(output)
+        return
+
+    if args.command == "delivery5" and args.delivery5_command == "evaluate":
+        output = evaluate_delivery5(
+            Delivery5Config(
+                ce_embeddings_path=args.ce_embeddings,
+                supcon_embeddings_path=args.supcon_embeddings,
+                arcface_embeddings_path=args.arcface_embeddings,
+                output_dir=args.output_dir,
+                ce_checkpoint_path=args.ce_checkpoint,
+                supcon_checkpoint_path=args.supcon_checkpoint,
+                arcface_checkpoint_path=args.arcface_checkpoint,
+                seed=args.seed,
+            )
+        )
+        print(output)
+        return
+
+    if args.command == "delivery5" and args.delivery5_command == "evaluate-v2":
+        output = evaluate_delivery5_v2(
+            Delivery5V2Config(
+                ce_embeddings_path=args.ce_embeddings,
+                candidate_embeddings_path=args.candidate_embeddings,
+                output_dir=args.output_dir,
+                candidate_representation=args.candidate_representation,
+                osr_method=args.osr_method,
                 seed=args.seed,
             )
         )

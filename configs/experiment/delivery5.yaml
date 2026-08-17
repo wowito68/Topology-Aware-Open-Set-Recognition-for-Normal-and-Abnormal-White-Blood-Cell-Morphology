@@ -1,0 +1,65 @@
+seed: 37
+status: exploratory_representation_development
+manifest: data/manifests/mll23_split_seed37.csv
+manifest_hash: 4b8da8df49655b6f04b53aa75a912f0efceac776d81761b2b45b68c440c27bae
+historical_baseline:
+  representation: ce
+  checkpoint: artifacts/checkpoints/resnet18_seed37/best_checkpoint.pt
+  checkpoint_sha256: 7fb2e2a6741a4fcd1b7d9e3a985ab136fa0550741b69dcd62f0f21c28b6ae39d
+  embeddings: artifacts/embeddings/resnet18_seed37_embeddings.npz
+  closed_macro_f1: 0.9716
+  msp_auroc: 0.860211
+  msp_fpr95: 0.549964
+  vim_auroc: 0.872604
+  vim_fpr95: 0.514223
+training_controls:
+  backbone: resnet18
+  pretrained: true
+  image_size: 224
+  batch_size: 64
+  optimizer: adamw
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  epochs: 30
+  early_stopping_patience: 7
+  precision: amp
+  checkpoint_selection: known_validation_macro_f1
+  tie_breakers:
+    - known_validation_fisher_ratio
+    - known_validation_within_class_dispersion
+representations:
+  ce:
+    status: historical
+  supcon:
+    objective: CE + lambda * SupCon
+    lambda: 0.50
+    temperature: 0.10
+    projection_head: 512-256-128
+    sampler: PK 5x12 class-aware known-train only
+    ce_weighting: none_with_class_aware_sampler
+    output_dir: artifacts/checkpoints/delivery5/supcon_seed37
+    embeddings: artifacts/embeddings/delivery5/supcon_seed37_embeddings.npz
+  arcface:
+    objective: additive_angular_margin
+    scale: 30.0
+    margin: 0.30
+    ce_weighting: weighted_cross_entropy
+    output_dir: artifacts/checkpoints/delivery5/arcface_seed37
+    embeddings: artifacts/embeddings/delivery5/arcface_seed37_embeddings.npz
+osr_methods:
+  - msp
+  - energy
+  - knn_cosine_k5
+  - vim
+closed_set_safeguard:
+  macro_f1_minimum: 0.9616
+progression_baseline: CE + ViM
+progression_criteria:
+  criterion_a: Delta AUROC vs CE+ViM >= +0.015 with favorable paired bootstrap CI
+  criterion_b: Delta FPR95 vs CE+ViM <= -0.075 and Delta AUROC >= -0.005 and closed safeguard passes
+  criterion_c: lymphoid_related Delta AUROC >= +0.03 vs best CE scorer, overall AUROC degradation <= 0.01, closed safeguard passes
+outputs:
+  metrics: artifacts/metrics/delivery5
+  figures: artifacts/figures/delivery5
+  logs: artifacts/logs/delivery5
+  benchmarks: artifacts/benchmarks/delivery5

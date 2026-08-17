@@ -1,0 +1,83 @@
+{
+  "closed_set_safeguard": {
+    "metric": "known-test macro-F1",
+    "minimum": 0.9616
+  },
+  "delivery_status": "exploratory_representation_development",
+  "manifest_hash": "4b8da8df49655b6f04b53aa75a912f0efceac776d81761b2b45b68c440c27bae",
+  "osr_methods": [
+    "msp",
+    "energy",
+    "knn_cosine_k5",
+    "vim"
+  ],
+  "progression_baseline": {
+    "AUROC": 0.872604,
+    "FPR95": 0.514223,
+    "osr_method": "vim",
+    "representation": "ce"
+  },
+  "progression_criteria": {
+    "criterion_a": "Delta AUROC vs CE+ViM >= +0.015 with favorable paired bootstrap CI",
+    "criterion_b": "Delta FPR95 vs CE+ViM <= -0.075, Delta AUROC >= -0.005, and closed macro-F1 safeguard passes",
+    "criterion_c": "Delta lymphoid-related AUROC >= +0.03 vs best CE scorer, overall AUROC degradation <= 0.01, and closed macro-F1 safeguard passes"
+  },
+  "representations": [
+    {
+      "checkpoint_selection": "historical",
+      "name": "ce",
+      "status": "historical"
+    },
+    {
+      "checkpoint_selection": "known-validation macro-F1",
+      "lambda": 0.5,
+      "loss": "CE + lambda * SupCon",
+      "name": "supcon",
+      "primary_embedding": "512-dimensional backbone embedding h",
+      "projection_head": "512 -> 256 -> 128 with L2 normalization",
+      "temperature": 0.1,
+      "tie_breakers": [
+        "known-validation Fisher ratio",
+        "within-class dispersion"
+      ]
+    },
+    {
+      "checkpoint_selection": "known-validation macro-F1",
+      "loss": "ArcFace-style additive angular margin",
+      "margin": 0.3,
+      "name": "arcface",
+      "primary_embedding": "512-dimensional normalized backbone embedding",
+      "scale": 30.0,
+      "tie_breakers": [
+        "known-validation angular/Fisher separation"
+      ]
+    }
+  ],
+  "score_orientation": "larger means more UNKNOWN-like",
+  "seed": 37,
+  "split": "V1",
+  "status": "predeclared_before_delivery5_unknown_evaluation",
+  "tda_policy": "STOP TDA METHOD DEVELOPMENT; historical negative ablation only",
+  "unknown_groups": {
+    "immature_related_myeloid": [
+      "myeloblast",
+      "promyelocyte",
+      "promyelocyte_atypical",
+      "myelocyte",
+      "metamyelocyte",
+      "neutrophil_band"
+    ],
+    "lymphoid_related": [
+      "lymphocyte_large_granular",
+      "lymphocyte_neoplastic",
+      "lymphocyte_reactive",
+      "hairy_cell",
+      "plasma_cell"
+    ],
+    "other": [
+      "normoblast",
+      "smudge_cell"
+    ]
+  },
+  "unknown_usage": "analysis only; never training, checkpoint selection, or OSR selection"
+}
