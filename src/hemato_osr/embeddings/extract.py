@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,7 @@ from hemato_osr.data.manifest import manifest_hash
 from hemato_osr.data.transforms import TransformConfig, build_transforms
 from hemato_osr.models.backbones import ModelConfig, create_classifier
 from hemato_osr.training.checkpoint import load_checkpoint
+from hemato_osr.utils.tracking import write_json
 
 
 @dataclass(frozen=True)
@@ -46,6 +48,16 @@ def _checkpoint_model_config(checkpoint: dict[str, Any]) -> ModelConfig:
         num_classes=len(label_to_index),
         pretrained=False,
     )
+
+
+def _sha256_file(path: Path) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def extract_embeddings(config: EmbeddingExtractConfig) -> Path:
@@ -85,6 +97,7 @@ def extract_embeddings(config: EmbeddingExtractConfig) -> Path:
     embedding_rows: list[np.ndarray] = []
     predictions: list[str] = []
     index_to_label = {idx: label for label, idx in label_to_index.items()}
+    forward_start = time.perf_counter()
 
     with torch.no_grad():
         for batch in loader:
@@ -99,6 +112,7 @@ def extract_embeddings(config: EmbeddingExtractConfig) -> Path:
             logits_rows.append(logits)
             embedding_rows.append(embeddings)
             predictions.extend(index_to_label.get(int(idx), "UNKNOWN") for idx in pred_idx)
+    forward_seconds = time.perf_counter() - forward_start
 
     split_lookup = dict(
         zip(frame["sample_id"].astype(str), frame["split"].astype(str), strict=True)
@@ -119,6 +133,8 @@ def extract_embeddings(config: EmbeddingExtractConfig) -> Path:
         prediction=np.asarray(predictions, dtype=object),
         label_to_index=json.dumps(label_to_index, sort_keys=True),
         manifest_hash=source_manifest_hash,
+        checkpoint_sha256=_sha256_file(config.checkpoint_path),
+        forward_ms_per_image=forward_seconds * 1000.0 / max(1, len(sample_ids)),
     )
     csv_path = config.output_path.with_suffix(".csv")
     pd.DataFrame(
@@ -130,4 +146,14 @@ def extract_embeddings(config: EmbeddingExtractConfig) -> Path:
             "prediction": predictions,
         }
     ).to_csv(csv_path, index=False)
+    write_json(
+        config.output_path.with_suffix(".metadata.json"),
+        {
+            "checkpoint": str(config.checkpoint_path),
+            "checkpoint_sha256": _sha256_file(config.checkpoint_path),
+            "representation": str(train_cfg.get("representation", "ce")),
+            "forward_ms_per_image": forward_seconds * 1000.0 / max(1, len(sample_ids)),
+            "manifest_hash": source_manifest_hash,
+        },
+    )
     return config.output_path

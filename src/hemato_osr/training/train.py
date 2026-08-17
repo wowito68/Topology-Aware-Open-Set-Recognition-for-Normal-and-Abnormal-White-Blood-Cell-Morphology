@@ -48,6 +48,7 @@ class TrainConfig:
     device: str = "auto"
     precision: str = "fp32"
     log_path: Path | None = None
+    smoke_max_train_per_class: int | None = None
 
 
 def _device(name: str) -> torch.device:
@@ -72,6 +73,17 @@ def _sampler(frame: pd.DataFrame, label_to_index: dict[str, int]) -> WeightedRan
     counts = labels.value_counts()
     weights = labels.map(lambda label: 1.0 / float(counts[label])).to_numpy(dtype=np.float64)
     return WeightedRandomSampler(weights=weights, num_samples=len(weights), replacement=True)
+
+
+def _subset_per_class(frame: pd.DataFrame, per_class: int | None, seed: int) -> pd.DataFrame:
+    if per_class is None:
+        return frame
+    return (
+        frame.groupby("canonical_label", group_keys=False, sort=True)
+        .apply(lambda group: group.sample(n=min(per_class, len(group)), random_state=seed))
+        .sort_values("sample_id")
+        .reset_index(drop=True)
+    )
 
 
 def _balanced_accuracy(y_true: list[int], y_pred: list[int]) -> float:
@@ -156,6 +168,7 @@ def train_closed_set(config: TrainConfig) -> Path:
     known_frame = frame.loc[frame["canonical_label"].isin(config.known_classes)].copy()
     train_frame = known_frame.loc[known_frame["split"] == "train"].copy()
     val_frame = known_frame.loc[known_frame["split"] == "validation"].copy()
+    train_frame = _subset_per_class(train_frame, config.smoke_max_train_per_class, config.seed)
     if train_frame.empty or val_frame.empty:
         msg = "Training requires non-empty known train and validation splits"
         raise ValueError(msg)

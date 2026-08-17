@@ -89,3 +89,10 @@ Special analyses compare `neutrophil_segmented` versus `neutrophil_band` and ins
 Delivery 4 reports the same predefined subgroup aggregates and additionally writes embedding geometry tables: per-class nearest known centroid, centroid distance, kNN distance summaries, known-train compactness, class-centroid distance matrix, and unknown-to-known attractor frequencies. These geometry outputs are explanatory only and are not used to choose thresholds or primary methods.
 
 Delivery 5 evaluates each representation with the same fixed OSR scorers: MSP, Energy `T=1`, cosine kNN `k=5`, and ViM. ArcFace inference uses normalized cosine classifier logits without target margin, because ground-truth labels are unavailable at inference time. ViM and kNN are independently fitted per representation using known-train embeddings only. All scores retain the convention that larger values are more unknown-like.
+
+Delivery 6 freezes the Delivery 5 ArcFace + MSP candidate and evaluates only matched CE and
+ArcFace representations with MSP and ViM over seeds `13`, `37`, `73`, `101`, and `137` on V1
+and V2. The statistical unit is the training seed/run. Seed-level matched deltas, not
+image-level bootstrap replicates, determine confirmation. The completed Delivery 6 matrix did
+not confirm ArcFace: V1 mean MSP AUROC delta was `+0.0130` with the 95% seed-level CI crossing
+zero, and V2 mean MSP AUROC delta was `-0.0199`.

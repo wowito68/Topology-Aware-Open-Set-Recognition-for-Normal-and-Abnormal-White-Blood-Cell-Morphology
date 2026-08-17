@@ -64,6 +64,20 @@ Delivery 5 extends the sequence with representation training:
 7. Recompute known geometry, unknown geometry, attractor matrices, per-unknown-class metrics, subgroup metrics, and paired bootstrap deltas versus CE+ViM.
 8. Run V2 only for a passing representation/scorer pair; otherwise V2 is not run.
 
+Delivery 6 confirms the frozen ArcFace + MSP candidate without changing the method:
+
+1. Persist `configs/experiment/delivery6_predeclared_matrix.json` before new training.
+2. Train exactly 20 sequential GPU runs: five seeds, two split protocols, and CE/ArcFace pairs.
+3. Fit MSP directly and ViM independently per run using known-train rows only.
+4. Summarize matched ArcFace-minus-CE deltas at the seed/run level, not the image level.
+5. Compute geometry, class-level stability, subgroup stability, and attractor stability after all runs are frozen.
+6. Apply the predeclared criteria A-E without adding losses, scorers, backbones, or split changes.
+
+Delivery 6 result: ArcFace + MSP failed confirmation. V1 mean matched AUROC delta was
+`+0.0130` with a seed-level 95% CI crossing zero, and V2 mean matched AUROC delta was
+`-0.0199` with only one of five V2 seeds nonnegative. The reproducibility recommendation is
+external comparison of CE and ArcFace, rather than further MLL23 method search.
+
 ## Required Metadata
 
 Record git commit, seed, timestamp, Python, PyTorch, CUDA, GPU, manifest hash, exact config, threshold protocol, and class taxonomy.
@@ -78,6 +92,11 @@ Delivery 4 additionally records checkpoint SHA256, embedding manifest hash, meth
 
 Delivery 5 additionally records representation loss, SupCon lambda/temperature, projection-head dimensions, ArcFace scale/margin, sampler policy, CE weighting policy, checkpoint selection rule, training epochs completed, best epoch, wall-clock time, GPU-hours, peak VRAM, checkpoint SHA256, embedding export forward time, and whether UMAP was available or PCA fallback was used.
 
+Delivery 6 additionally records run ids, split hashes, seed-level matched deltas, t-based
+confidence intervals over seeds, per-run checkpoint SHA256, per-run training time, per-run
+peak VRAM, per-class stability labels, subgroup stability, attractor stability, and the
+predeclared confirmation decision.
+
 ## Multiple Seeds
 
 Delivery 2 uses only seed `37`. Planned future validation seeds are `13`, `37`, `73`, `101`, and `137`, but multiseed evaluation starts only after a final method is selected.
@@ -87,6 +106,10 @@ Delivery 3 also uses only seed `37` for primary exploratory method development. 
 Delivery 4 also uses only seed `37` for exploratory method development on V1. Multiseed or Split V2 confirmation is explicitly deferred until after a primary post-hoc method passes the predeclared progression criteria.
 
 Delivery 5 also uses only seed `37`. If SupCon or ArcFace passes progression criteria, multiseed and external-domain validation are deferred to Delivery 6 rather than run automatically in Delivery 5.
+
+Delivery 6 uses exactly seeds `13`, `37`, `73`, `101`, and `137` over V1 and V2 for matched
+CE versus ArcFace stability analysis. These seeds must not be replaced or dropped because of
+unfavorable results.
 
 ## Artifacts
 
@@ -138,5 +161,16 @@ Delivery 5 artifacts are organized under:
 - `artifacts/figures/delivery5/`
 - `artifacts/logs/delivery5/`
 - `artifacts/benchmarks/delivery5/`
+
+Previous delivery artifacts must not be deleted or overwritten.
+
+Delivery 6 artifacts are organized under:
+
+- `configs/experiment/delivery6_predeclared_matrix.json`
+- `artifacts/checkpoints/delivery6/`
+- `artifacts/embeddings/delivery6/`
+- `artifacts/metrics/delivery6/`
+- `artifacts/figures/delivery6/`
+- `artifacts/logs/delivery6/`
 
 Previous delivery artifacts must not be deleted or overwritten.
