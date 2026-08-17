@@ -33,6 +33,19 @@ Delivery 5 moves from post-hoc scoring to exploratory representation development
 - `RQ13`: Does an angular-margin representation improve separation of morphologically related known and unknown blood cells?
 - `RQ14`: Are improvements in OSR associated with measurable changes in embedding geometry?
 
+Delivery 7 starts only after the Delivery 6 conclusion is locked. It separates external
+validation from explanatory topology analysis:
+
+- `RQ19`: Does the stable CE+ViM baseline generalize to an independent microscopy domain
+  without external training, tuning, threshold calibration, or ViM fitting?
+- `RQ20`: Are ArcFace external results consistent with the mixed V1/V2 internal evidence,
+  while preserving ArcFace as exploratory after failed Delivery 6 confirmation?
+- `RQ21`: How stable is Vietoris-Rips persistent topology of learned embedding clouds
+  across seeds, split protocols, and representations?
+- `RQ22`: Are topological instability summaries associated with OSR instability?
+- `RQ23`: Do morphologically related unknown cells show topological or local-geometric
+  entanglement with known leukocyte classes?
+
 ## Hypotheses
 
 - Deep embeddings provide strong closed-set morphology discrimination.
@@ -190,6 +203,103 @@ If ArcFace fails confirmation, no additional margin, loss, backbone, scorer, TDA
 or SupCon rerun is launched automatically. The next step becomes external validation of
 the strongest stable baseline or an external comparison of CE and ArcFace if the internal
 evidence is mixed.
+
+Delivery 6 result: ArcFace failed confirmation. V1 CE+MSP AUROC was `0.8678 +/- 0.0139`
+and ArcFace+MSP AUROC was `0.8808 +/- 0.0125`, with matched delta `+0.0130` and 95% CI
+`[-0.0033, +0.0293]`. V2 CE+MSP AUROC was `0.8715 +/- 0.0194` and ArcFace+MSP AUROC was
+`0.8516 +/- 0.0296`, with matched delta `-0.0199` and 95% CI `[-0.0658, +0.0259]`.
+ArcFace was favorable in `4/5` V1 seeds but only `1/5` V2 seeds. CE+ViM remained the
+stable internal baseline, with V1 AUROC approximately `0.8768 +/- 0.0044` and V2 AUROC
+approximately `0.8740 +/- 0.0085`. ArcFace remains an exploratory representation-learning
+ablation, not the confirmed primary method.
+
+## Delivery 7 External Validation and Embedding Topology
+
+The predeclared Delivery 7 protocol is persisted at
+`configs/experiment/delivery7_predeclared_protocol.json` before any external model
+evaluation. Delivery 7 has two separate objectives: external validation of frozen
+Delivery 6 models, and explanatory Vietoris-Rips analysis of learned embedding topology.
+Vietoris-Rips persistence is never used as a classifier, anomaly score, fusion feature,
+thresholding rule, model-selection signal, or hyperparameter-selection signal.
+
+The primary external system is `CE + ViM`, because Delivery 6 identified it as the
+strongest stable internal baseline. The external comparison matrix is fixed to
+`CE + MSP`, `CE + ViM`, `ArcFace + MSP`, and `ArcFace + ViM` over the 20 frozen Delivery 6
+runs: seeds `13`, `37`, `73`, `101`, and `137`; split protocols V1 and V2; and
+representations CE and ArcFace. No external data may be used for training, fine-tuning,
+linear probing, threshold tuning, temperature tuning, ViM fitting, PCA fitting,
+normalization fitting, prototype fitting, or kNN bank construction.
+
+External dataset selection must be based only on the predeclared audit criteria:
+independence from MLL23, publicly documented official source, hematological microscopy,
+single-cell or reliably isolated individual-cell images, morphologically labeled classes,
+usable license or documented terms, and defensible taxonomy mapping. Candidate sources are
+audited in this order: `AML-Cytomorphology_LMU`, `Raabin-WBC`, `C-NMC 2019`, and
+`WBCAtt+`. `AML-Cytomorphology_LMU` is preferred only if official metadata supports exact
+or scientifically defensible morphology mapping. If a candidate fails before model
+evaluation, the next candidate is evaluated under the same criteria. A dataset cannot be
+switched because model performance is unfavorable.
+
+The canonical known taxonomy remains unchanged: `basophil`, `eosinophil`, `lymphocyte`,
+`monocyte`, and `neutrophil_segmented`. Source labels may be mapped only to exact known
+classes, unknown morphologies outside the training taxonomy, or excluded ambiguous labels.
+Ambiguous labels are excluded from primary analysis before evaluation. Band neutrophils,
+immature granulocytes, and blasts must not be coerced into canonical mature known classes
+without explicit official equivalence. The frozen mapping is recorded in
+`configs/data/external_taxonomy_delivery7.yaml` and
+`artifacts/metrics/delivery7/external_taxonomy_mapping.csv`.
+
+External preprocessing preserves the training pipeline: RGB conversion, deterministic
+224x224 resize/crop according to the training rule, and ImageNet normalization. Stain
+normalization is not part of the primary analysis, and no preprocessing decision may be
+tuned against external labels or metrics. Deterministic format adaptation is allowed for
+image decoding, alpha removal, and objective bit-depth normalization when required.
+External QC records unreadable images, duplicate paths, exact duplicate checksums,
+dimensions, channels, and intensity ranges.
+
+ViM must be fit or reconstructed only from the corresponding MLL23 known-train
+embeddings/logits for each frozen run. Discrete UNKNOWN decisions, if reported, use frozen
+thresholds derived from the corresponding MLL23 known-validation split under the
+predeclared known-acceptance rule. Threshold-free external metrics are AUROC, AUPR with
+unknown positive, AUPR with known positive, FPR@95TPR, and OSCR. Closed-set external
+metrics are accuracy, balanced accuracy, macro-F1, per-class F1, and the confusion matrix
+over exact external known mappings only. Seed-level model runs, not individual images, are
+the statistical unit for model stability comparisons.
+
+Delivery 7 also computes internal-to-external domain shift per run:
+`Delta_domain_AUROC = external_AUROC - MLL23_AUROC` and
+`Delta_domain_FPR95 = external_FPR95 - MLL23_FPR95`. These deltas quantify external
+generalization loss and do not launch a new method search.
+
+Vietoris-Rips analysis is performed on L2-normalized embedding clouds using cosine
+distance, homology dimensions H0 and H1 only, and primary sample size `N_VR = 192` per
+class when available. Sample IDs are selected once with `VR_SAMPLE_SEED = 2026` and
+persisted at `artifacts/topology/delivery7/vr_sample_manifest.csv`; the same IDs are used
+across CE, ArcFace, and all model seeds whenever samples exist. Known-class V1/V2
+topology comparisons use the intersection of eligible V1 and V2 known-test sample IDs.
+Mandatory MLL23 unknown topology clouds are `lymphocyte_large_granular`,
+`lymphocyte_neoplastic`, `lymphocyte_reactive`, `hairy_cell`, and `neutrophil_band`.
+
+For each H0/H1 diagram, fixed summaries are number of finite bars, total persistence, mean
+persistence, maximum persistence, persistence entropy, and for H1 the number of bars above
+a fixed relative persistence threshold of `0.10`. The primary diagram distance is
+bottleneck distance; p-Wasserstein with fixed `p = 2` is secondary if computationally
+tractable. Betti curves use an identical epsilon grid for comparable normalized cosine
+diagrams. Before full topology extraction, a feasibility smoke benchmark at sample sizes
+`64`, `128`, and `192` is run on known-train or fixed non-test development clouds to
+record runtime, peak RAM, and simplex/diagram complexity. The scientific sample size
+remains `192` unless this is technically infeasible and documented before test topology
+extraction.
+
+Delivery 7 explicitly tests whether ArcFace changes topological seed stability, split
+stability, and H0/H1 persistence structure after improving ordinary Fisher-style geometry
+without stable OSR gains. The lymphocyte analysis combines Vietoris-Rips summaries with
+nearest-known distance, kNN distance, prototype attraction, and cross-class neighbor
+mixing for `lymphocyte`, `lymphocyte_large_granular`, `lymphocyte_neoplastic`,
+`lymphocyte_reactive`, and `hairy_cell`. The neutrophil case study compares
+`neutrophil_segmented` and `neutrophil_band`, because Delivery 6 found consistent
+ArcFace degradation for neutrophil-band MSP rejection. Persistence-diagram similarity
+alone is never interpreted as proof that two cell types occupy the same embedding region.
 
 ## Near-Duplicate Sensitivity
 

@@ -1,0 +1,269 @@
+{
+  "article_decision_rules": {
+    "allowed_outcomes": [
+      "CE+ViM generalizes reasonably and remains the primary system.",
+      "ArcFace shows external improvement despite internal instability, but remains exploratory because confirmation was mixed.",
+      "Both systems degrade substantially externally, indicating domain shift is a dominant limitation.",
+      "External results vary strongly by morphology, making morphology-dependent reliability the principal finding."
+    ],
+    "arcface_rule": "Delivery 6 failed internal confirmation; ArcFace cannot be upgraded to confirmed proposed method from a single favorable external aggregate.",
+    "vim_primary_question": "Does CE+ViM remain the strongest stable external system across seeds and splits?",
+    "vietoris_rips_role": "explanatory embedding-topology analysis only; never a classifier, anomaly score, fusion feature, or thresholding method"
+  },
+  "cache_identity": {
+    "external_embedding_cache": [
+      "dataset version",
+      "sample checksum",
+      "checkpoint SHA256",
+      "preprocessing hash",
+      "representation"
+    ],
+    "vr_cache": [
+      "sample ID set hash",
+      "embedding checkpoint hash",
+      "L2 normalization",
+      "distance metric",
+      "N_VR",
+      "homology dimensions",
+      "library/version",
+      "VR config hash"
+    ]
+  },
+  "delivery_status": "predeclared_external_validation_and_embedding_topology_analysis",
+  "external_dataset": {
+    "candidate_order": [
+      "AML-Cytomorphology_LMU",
+      "Raabin-WBC",
+      "C-NMC 2019",
+      "WBCAtt+"
+    ],
+    "independence_rule": "Primary external dataset must be independent from MLL23 and must not be selected or rejected based on model performance.",
+    "license_stop_condition": "Stop if official license or terms prohibit the intended research use.",
+    "primary_preference": "Use AML-Cytomorphology_LMU only if official metadata supports a defensible morphology mapping to exact known and out-of-taxonomy labels.",
+    "required_audit_artifact": "artifacts/data_audit/delivery7/external_dataset_audit.json",
+    "selection_criteria": [
+      "publicly documented official source",
+      "hematological microscopy",
+      "single-cell images or reliably isolated individual cells",
+      "morphological labels with counts",
+      "usable license or documented terms",
+      "prefer exact mature known WBC labels plus additional immature or abnormal morphology labels"
+    ]
+  },
+  "external_evaluation": {
+    "closed_set_metrics": [
+      "accuracy",
+      "balanced_accuracy",
+      "macro_f1",
+      "per_class_f1",
+      "confusion_matrix"
+    ],
+    "comparators": [
+      "CE+MSP",
+      "CE+ViM",
+      "ArcFace+MSP",
+      "ArcFace+ViM"
+    ],
+    "internal_external_shift": [
+      "Delta_domain_AUROC = external_AUROC - MLL23_AUROC",
+      "Delta_domain_FPR95 = external_FPR95 - MLL23_FPR95"
+    ],
+    "per_unknown_class_metrics": [
+      "n",
+      "AUROC",
+      "FPR95 where meaningful",
+      "mean anomaly score",
+      "median anomaly score",
+      "nearest predicted known class"
+    ],
+    "primary_system": "CE+ViM",
+    "statistical_unit": "model seed/run, not individual images",
+    "threshold_free_metrics": [
+      "AUROC",
+      "AUPR unknown-positive",
+      "AUPR known-positive",
+      "FPR95",
+      "OSCR"
+    ]
+  },
+  "forbidden_changes": [
+    "train new networks",
+    "fine-tune on external data",
+    "change CE or ArcFace training recipes",
+    "change MLL23 splits",
+    "change seeds",
+    "add losses",
+    "add backbones",
+    "add OSR scorers",
+    "optimize ViM externally",
+    "calibrate thresholds externally",
+    "fit PCA/scalers/prototypes/kNN banks on external data",
+    "perform stain tuning using external labels",
+    "drop difficult external classes because of poor performance",
+    "use Vietoris-Rips features for classification or OSR",
+    "optimize VR parameters against AUROC",
+    "claim diagnostic or clinical validation"
+  ],
+  "locked_delivery6_conclusion": {
+    "arcface_status": "failed_confirmation_exploratory_only",
+    "primary_stable_internal_baseline": "CE+ViM",
+    "summary": "ArcFace improved known-class Fisher geometry but did not produce stable OSR gains across V1/V2 seeds."
+  },
+  "models": {
+    "checkpoint_source": "frozen Delivery 6 models",
+    "expected_runs": 20,
+    "representations": [
+      "ce",
+      "arcface"
+    ],
+    "seeds": [
+      13,
+      37,
+      73,
+      101,
+      137
+    ],
+    "splits": [
+      "V1",
+      "V2"
+    ]
+  },
+  "osr_policy": {
+    "score_orientation": "larger means more UNKNOWN-like",
+    "scorers": [
+      "MSP",
+      "ViM"
+    ],
+    "threshold_policy": "Frozen threshold from corresponding MLL23 known_validation using the already predeclared known-acceptance rule.",
+    "vim_fit_rule": "ViM is fit or reconstructed using only the original corresponding MLL23 known_train embeddings/logits for each frozen run; never fit on external features."
+  },
+  "preprocessing": {
+    "external_primary": [
+      "RGB conversion",
+      "deterministic resize/crop to 224x224 matching training pipeline",
+      "ImageNet normalization"
+    ],
+    "forbidden": [
+      "stain normalization as primary analysis",
+      "preprocessing tuned against external labels or metrics"
+    ],
+    "qc_artifact": "artifacts/data_audit/delivery7/external_qc.csv",
+    "qc_checks": [
+      "unreadable images",
+      "duplicate paths",
+      "exact duplicate checksums",
+      "dimensions",
+      "channels",
+      "intensity ranges"
+    ],
+    "stable_adaptations": [
+      "TIFF/JPEG/PNG to RGB",
+      "alpha removal",
+      "objective bit-depth normalization when required"
+    ]
+  },
+  "taxonomy": {
+    "canonical_known_classes": [
+      "basophil",
+      "eosinophil",
+      "lymphocyte",
+      "monocyte",
+      "neutrophil_segmented"
+    ],
+    "config_artifact": "configs/data/external_taxonomy_delivery7.yaml",
+    "forbidden_mappings": [
+      "band neutrophil to neutrophil_segmented",
+      "immature granulocyte to neutrophil_segmented",
+      "blast to lymphocyte unless the source explicitly defines equivalence"
+    ],
+    "mapping_artifact": "artifacts/metrics/delivery7/external_taxonomy_mapping.csv",
+    "mapping_statuses": [
+      "known canonical class",
+      "unknown morphology",
+      "excluded ambiguous"
+    ],
+    "rule": "Only exact, officially documented morphology equivalences can be mapped to canonical known classes; ambiguous labels are excluded from the primary analysis before evaluation."
+  },
+  "vietoris_rips": {
+    "betti_curves": {
+      "epsilon_grid": "fixed, identical grid for comparable normalized cosine diagrams",
+      "outputs": [
+        "beta_0(epsilon)",
+        "beta_1(epsilon)"
+      ]
+    },
+    "clouds": {
+      "hard_unknown_mll23": [
+        "lymphocyte_large_granular",
+        "lymphocyte_neoplastic",
+        "lymphocyte_reactive",
+        "hairy_cell",
+        "neutrophil_band"
+      ],
+      "known": [
+        "basophil",
+        "eosinophil",
+        "lymphocyte",
+        "monocyte",
+        "neutrophil_segmented"
+      ],
+      "optional_unknowns": "all other MLL23 unknowns only as one predeclared secondary set"
+    },
+    "construction": {
+      "distance_metric": "cosine distance on L2-normalized embeddings",
+      "homology_dimensions": [
+        0,
+        1
+      ],
+      "library_preference": "GUDHI RipsComplex if practical; record library/version/algorithm and do not change backend between representations",
+      "max_homology_dimension": 1,
+      "normalization": "L2 normalize every embedding before distance computation",
+      "primary_sample_size": 192,
+      "sample_seed": 2026,
+      "sample_manifest": "artifacts/topology/delivery7/vr_sample_manifest.csv"
+    },
+    "diagram_distances": {
+      "primary": "bottleneck distance",
+      "secondary": "p-Wasserstein distance with fixed p=2 if computationally tractable"
+    },
+    "feasibility_smoke": {
+      "sample_sizes": [
+        64,
+        128,
+        192
+      ],
+      "selection_source": "known-train or fixed non-test development clouds only",
+      "track": [
+        "runtime",
+        "peak RAM",
+        "simplex/diagram complexity"
+      ]
+    },
+    "fixed_sampling": "Select sample IDs once per dataset/class with VR_SAMPLE_SEED=2026 and reuse the exact same IDs across CE, ArcFace, and all model seeds when samples exist.",
+    "h1_relative_persistence_threshold": 0.10,
+    "mll23_v1_v2_known_rule": "Use intersection of eligible V1 and V2 known-test sample IDs for known-class VR comparisons.",
+    "summaries": [
+      "number of finite bars",
+      "total persistence",
+      "mean persistence",
+      "maximum persistence",
+      "persistence entropy",
+      "H1 bars above fixed relative persistence threshold"
+    ],
+    "topology_vs_osr": {
+      "correlations": [
+        "Pearson",
+        "Spearman"
+      ],
+      "metrics": [
+        "mean known-class topological instability",
+        "lymphocyte topological instability",
+        "neutrophil_segmented topological instability",
+        "MSP AUROC",
+        "ViM AUROC",
+        "FPR95"
+      ],
+      "role": "exploratory, no p-value overinterpretation"
+    }
+  }
+}
