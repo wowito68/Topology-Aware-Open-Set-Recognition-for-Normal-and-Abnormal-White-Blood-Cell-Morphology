@@ -1,0 +1,108 @@
+dataset: AML-Cytomorphology_LMU
+version: "1"
+source:
+  official_url: https://www.cancerimagingarchive.net/collection/aml-cytomorphology_lmu/
+  doi: https://doi.org/10.7937/tcia.2019.36f5o9ld
+  abbreviations_url: https://www.cancerimagingarchive.net/wp-content/uploads/abbreviations.txt
+  annotations_url: https://www.cancerimagingarchive.net/wp-content/uploads/AML-CYTOMORPHOLOGY_LMU-annotations-dat.zip
+canonical_known_classes:
+  - basophil
+  - eosinophil
+  - lymphocyte
+  - monocyte
+  - neutrophil_segmented
+mapping:
+  BAS:
+    canonical_label: basophil
+    status: known
+    known_or_unknown: known
+    reason: "Official abbreviation is Basophil, exactly matching a canonical known class."
+  EBO:
+    canonical_label: erythroblast
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Erythroblast, outside the known mature leukocyte taxonomy."
+  EOS:
+    canonical_label: eosinophil
+    status: known
+    known_or_unknown: known
+    reason: "Official abbreviation is Eosinophil, exactly matching a canonical known class."
+  KSC:
+    canonical_label: smudge_cell
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Smudge cell, outside the known mature leukocyte taxonomy."
+  LYA:
+    canonical_label: lymphocyte_atypical
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Lymphocyte (atypical); not collapsed into typical lymphocyte."
+  LYT:
+    canonical_label: lymphocyte
+    status: known
+    known_or_unknown: known
+    reason: "Official abbreviation is Lymphocyte (typical), a defensible exact mature lymphocyte mapping."
+  MMZ:
+    canonical_label: metamyelocyte
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Metamyelocyte, an immature morphology outside the known taxonomy."
+  MOB:
+    canonical_label: monoblast
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Monoblast, outside the known mature leukocyte taxonomy."
+  MON:
+    canonical_label: monocyte
+    status: known
+    known_or_unknown: known
+    reason: "Official abbreviation is Monocyte, exactly matching a canonical known class."
+  MYB:
+    canonical_label: myelocyte
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Myelocyte, an immature morphology outside the known taxonomy."
+  MYO:
+    canonical_label: myeloblast
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Myeloblast, outside the known mature leukocyte taxonomy."
+  NGB:
+    canonical_label: neutrophil_band
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Neutrophil (band); explicitly not mapped to segmented neutrophil."
+  NGS:
+    canonical_label: neutrophil_segmented
+    status: known
+    known_or_unknown: known
+    reason: "Official abbreviation is Neutrophil (segmented), exactly matching a canonical known class."
+  PMB:
+    canonical_label: promyelocyte_bilobled
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Promyelocyte (bilobled), outside the known taxonomy."
+  PMO:
+    canonical_label: promyelocyte
+    status: unknown_morphology
+    known_or_unknown: unknown
+    reason: "Official abbreviation is Promyelocyte, outside the known taxonomy."
+excluded_labels:
+  UNC:
+    canonical_label: null
+    status: excluded_ambiguous
+    known_or_unknown: excluded
+    reason: "Official abbreviation means image could not be assigned a class during re-annotation."
+  nan:
+    canonical_label: null
+    status: excluded_ambiguous
+    known_or_unknown: excluded
+    reason: "Official abbreviation means no re-annotation; not a gold-standard morphology label."
+primary_analysis:
+  label_column: gold_standard_annotation_column_2
+  ambiguous_policy: exclude_before_model_evaluation
+  external_data_role: test_only
+forbidden_mappings:
+  - band neutrophil to neutrophil_segmented
+  - immature granulocyte to neutrophil_segmented
+  - blast to lymphocyte
