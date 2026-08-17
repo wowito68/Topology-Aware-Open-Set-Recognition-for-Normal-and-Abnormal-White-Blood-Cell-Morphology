@@ -11,12 +11,14 @@ from PIL import Image
 from hemato_osr.experiments.delivery4 import EmbeddingArchive
 from hemato_osr.experiments.delivery7 import (
     assert_no_external_fit,
+    betti_curve,
     bottleneck_distance,
     build_external_manifest,
     cosine_distance_matrix,
     diagram_summary,
     fixed_vr_sample_ids,
     rips_diagrams,
+    write_vr_sample_manifest,
 )
 
 
@@ -120,6 +122,39 @@ def test_vr_sample_ids_are_reproducible_and_class_scoped() -> None:
     assert first == second
     assert len(first) == 5
     assert set(first).isdisjoint(other)
+
+
+def test_write_vr_sample_manifest_records_available_n(tmp_path: Path) -> None:
+    frame = pd.DataFrame(
+        {
+            "sample_id": [f"s{i}" for i in range(7)],
+            "canonical_label": ["a"] * 4 + ["b"] * 3,
+        }
+    )
+    output = tmp_path / "vr_sample_manifest.csv"
+
+    write_vr_sample_manifest(
+        {"synthetic": frame},
+        output,
+        classes=("a", "b"),
+        n_vr=3,
+        seed=2026,
+    )
+
+    manifest = pd.read_csv(output)
+    assert set(manifest["dataset"]) == {"synthetic"}
+    assert set(manifest["class"]) == {"a", "b"}
+    assert manifest.loc[manifest["class"] == "a", "available_n"].unique().tolist() == [4]
+    assert len(manifest.loc[manifest["class"] == "a"]) == 3
+
+
+def test_betti_curve_counts_alive_intervals() -> None:
+    diagram = np.asarray([[0.0, 1.0], [0.25, 0.75], [0.5, np.inf]])
+    grid = np.asarray([0.0, 0.25, 0.5, 0.75, 1.0])
+
+    curve = betti_curve(diagram, grid)
+
+    assert curve.tolist() == [1.0, 2.0, 3.0, 2.0, 1.0]
 
 
 def test_rips_circle_has_h1_and_bottleneck_identity_zero() -> None:

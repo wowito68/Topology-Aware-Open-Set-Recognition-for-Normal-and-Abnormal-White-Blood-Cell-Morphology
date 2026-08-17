@@ -45,6 +45,22 @@ VR_SAMPLE_SEED = 2026
 N_VR = 192
 H1_RELATIVE_PERSISTENCE_THRESHOLD = 0.10
 DELIVERY7_OSR_METHODS = DELIVERY6_OSR_METHODS
+VR_HARD_UNKNOWN_MLL23 = (
+    "lymphocyte_large_granular",
+    "lymphocyte_neoplastic",
+    "lymphocyte_reactive",
+    "hairy_cell",
+    "neutrophil_band",
+)
+VR_LYMPHOID_CASE_CLASSES = (
+    "lymphocyte",
+    "lymphocyte_large_granular",
+    "lymphocyte_neoplastic",
+    "lymphocyte_reactive",
+    "hairy_cell",
+)
+VR_NEUTROPHIL_CASE_CLASSES = ("neutrophil_segmented", "neutrophil_band")
+VR_EPSILON_GRID = np.linspace(0.0, 2.0, 201)
 
 
 @dataclass(frozen=True)
@@ -686,6 +702,7 @@ def write_vr_sample_manifest(
     rows: list[dict[str, Any]] = []
     for dataset, frame in populations.items():
         for class_name in classes:
+            available_n = int(np.sum(frame["canonical_label"].astype(str) == class_name))
             ids = fixed_vr_sample_ids(
                 frame,
                 dataset=dataset,
@@ -698,6 +715,7 @@ def write_vr_sample_manifest(
                     "dataset": dataset,
                     "class": class_name,
                     "sample_id": sample_id,
+                    "available_n": available_n,
                     "n_vr": n_vr,
                     "sample_seed": seed,
                 }
@@ -705,6 +723,70 @@ def write_vr_sample_manifest(
             )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows).to_csv(output_path, index=False)
+    return output_path
+
+
+def _run_spec(split: str, seed: int, representation: str) -> Delivery6RunSpec:
+    for spec in build_run_matrix():
+        if spec.split == split and spec.seed == seed and spec.representation == representation:
+            return spec
+    msg = f"No Delivery 6 run spec for split={split}, seed={seed}, representation={representation}"
+    raise ValueError(msg)
+
+
+def _archive_frame(archive: EmbeddingArchive) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "sample_id": archive.sample_id.astype(str),
+            "canonical_label": archive.true_label.astype(str),
+            "known_status": archive.known_status.astype(str),
+            "split": archive.split.astype(str),
+        }
+    )
+
+
+def _load_reference_archive(paths: Delivery7Paths, split: str) -> EmbeddingArchive:
+    spec = _run_spec(split, seed=13, representation="ce")
+    return load_embeddings(paths.internal_embedding_dir / f"{spec.run_id}_embeddings.npz")
+
+
+def _mll23_common_test_population(paths: Delivery7Paths) -> pd.DataFrame:
+    """Return fixed MLL23 test population eligible in both V1 and V2."""
+
+    v1 = _archive_frame(_load_reference_archive(paths, "v1"))
+    v2 = _archive_frame(_load_reference_archive(paths, "v2"))
+    v1_test = v1.loc[v1["split"] == "test"].copy()
+    v2_test = v2.loc[v2["split"] == "test"].copy()
+    common_ids = set(v1_test["sample_id"]).intersection(v2_test["sample_id"])
+    frame = v1_test.loc[v1_test["sample_id"].isin(common_ids)].copy()
+    allowed = set(DEFAULT_KNOWN_CLASSES).union(VR_HARD_UNKNOWN_MLL23)
+    return frame.loc[frame["canonical_label"].isin(allowed)].reset_index(drop=True)
+
+
+def build_vr_sample_manifest(paths: Delivery7Paths) -> Path:
+    """Build the fixed sample-id manifest for explanatory VR topology."""
+
+    external = pd.read_csv(paths.external_manifest_path)
+    external_classes = tuple(sorted(external["canonical_label"].astype(str).unique().tolist()))
+    mll23_classes = DEFAULT_KNOWN_CLASSES + VR_HARD_UNKNOWN_MLL23
+    rows: list[pd.DataFrame] = []
+    for dataset, frame, classes in (
+        ("MLL23_common_test", _mll23_common_test_population(paths), mll23_classes),
+        ("AML_LMU_external_test", external, external_classes),
+    ):
+        temp = paths.topology_dir / f".{dataset}_vr_sample_manifest.csv"
+        write_vr_sample_manifest(
+            {dataset: frame},
+            temp,
+            classes=classes,
+            n_vr=N_VR,
+            seed=VR_SAMPLE_SEED,
+        )
+        rows.append(pd.read_csv(temp))
+        temp.unlink(missing_ok=True)
+    output_path = paths.topology_dir / "vr_sample_manifest.csv"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.concat(rows, ignore_index=True).to_csv(output_path, index=False)
     return output_path
 
 
@@ -716,17 +798,36 @@ def rips_diagrams(
 ) -> dict[int, np.ndarray]:
     """Compute H0/H1 Vietoris-Rips diagrams from normalized cosine distances."""
 
+    diagrams, _elapsed, _simplices = _rips_diagrams_with_metadata(
+        embeddings,
+        max_edge_length=max_edge_length,
+        max_dimension=max_dimension,
+    )
+    return diagrams
+
+
+def _rips_diagrams_with_metadata(
+    embeddings: np.ndarray,
+    *,
+    max_edge_length: float = 2.0,
+    max_dimension: int = 1,
+) -> tuple[dict[int, np.ndarray], float, int]:
+    """Compute VR diagrams and technical metadata."""
+
     import gudhi as gd
 
+    start = time.perf_counter()
     distances = cosine_distance_matrix(embeddings)
     complex_ = gd.RipsComplex(distance_matrix=distances, max_edge_length=max_edge_length)
     simplex_tree = complex_.create_simplex_tree(max_dimension=max_dimension + 1)
+    simplex_count = int(simplex_tree.num_simplices())
     simplex_tree.persistence(homology_coeff_field=2, min_persistence=0.0)
     diagrams: dict[int, np.ndarray] = {}
     for dim in range(max_dimension + 1):
         intervals = simplex_tree.persistence_intervals_in_dimension(dim)
         diagrams[dim] = np.asarray(intervals, dtype=float).reshape(-1, 2)
-    return diagrams
+    elapsed = time.perf_counter() - start
+    return diagrams, elapsed, simplex_count
 
 
 def finite_bars(diagram: np.ndarray) -> np.ndarray:
@@ -776,6 +877,21 @@ def bottleneck_distance(diagram_a: np.ndarray, diagram_b: np.ndarray) -> float:
     if len(a) == 0 and len(b) == 0:
         return 0.0
     return float(gd.bottleneck_distance(a, b))
+
+
+def betti_curve(diagram: np.ndarray, epsilon_grid: np.ndarray = VR_EPSILON_GRID) -> np.ndarray:
+    """Evaluate a Betti curve on a fixed epsilon grid."""
+
+    if diagram.size == 0:
+        return np.zeros_like(epsilon_grid, dtype=float)
+    intervals = np.asarray(diagram, dtype=float).reshape(-1, 2)
+    births = intervals[:, 0]
+    deaths = intervals[:, 1]
+    values = []
+    for epsilon in epsilon_grid:
+        alive = (births <= epsilon) & ((epsilon < deaths) | ~np.isfinite(deaths))
+        values.append(float(np.sum(alive)))
+    return np.asarray(values, dtype=float)
 
 
 def seed_pair_stability(diagram_rows: pd.DataFrame) -> pd.DataFrame:
@@ -836,6 +952,468 @@ def cross_class_mixing(
         "centroid_distance": centroid_distance,
         "mean_knn_distance": float(np.mean(mean_knn)),
     }
+
+
+def _select_embeddings_by_ids(
+    archive: EmbeddingArchive,
+    sample_ids: pd.Series,
+) -> np.ndarray:
+    index = {sample_id: idx for idx, sample_id in enumerate(archive.sample_id.astype(str))}
+    positions = [
+        index[str(sample_id)] for sample_id in sample_ids.astype(str) if str(sample_id) in index
+    ]
+    if not positions:
+        return np.empty((0, archive.embedding.shape[1]), dtype=float)
+    return archive.embedding[np.asarray(positions, dtype=int)]
+
+
+def _save_diagrams(path: Path, diagrams: dict[int, np.ndarray]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(path, h0=diagrams[0], h1=diagrams[1])
+
+
+def _load_saved_diagrams(path: Path) -> dict[int, np.ndarray]:
+    with np.load(path) as data:
+        return {0: np.asarray(data["h0"], dtype=float), 1: np.asarray(data["h1"], dtype=float)}
+
+
+def _vr_library_version() -> str:
+    import gudhi
+
+    return str(gudhi.__version__)
+
+
+def run_vr_feasibility_smoke(paths: Delivery7Paths) -> Path:
+    """Record fixed VR feasibility timings before full explanatory extraction."""
+
+    archive = _load_reference_archive(paths, "v1")
+    frame = _archive_frame(archive)
+    rows: list[dict[str, Any]] = []
+    for sample_size in (64, 128, 192):
+        candidates = frame.loc[
+            (frame["split"] == "train")
+            & (frame["known_status"] == KNOWN)
+            & (frame["canonical_label"] == "neutrophil_segmented")
+        ]
+        ids = fixed_vr_sample_ids(
+            candidates,
+            dataset="MLL23_known_train_feasibility",
+            class_name="neutrophil_segmented",
+            n_vr=sample_size,
+            seed=VR_SAMPLE_SEED,
+        )
+        embeddings = _select_embeddings_by_ids(archive, pd.Series(ids))
+        diagrams, elapsed, simplex_count = _rips_diagrams_with_metadata(embeddings)
+        rows.append(
+            {
+                "sample_size": len(ids),
+                "requested_sample_size": sample_size,
+                "dataset": "MLL23_known_train_feasibility",
+                "class": "neutrophil_segmented",
+                "runtime_seconds": elapsed,
+                "simplex_count": simplex_count,
+                "h0_intervals": int(len(diagrams[0])),
+                "h1_intervals": int(len(diagrams[1])),
+                "gudhi_version": _vr_library_version(),
+                "vr_config_hash": vr_config_hash(),
+            }
+        )
+    paths.topology_dir.mkdir(parents=True, exist_ok=True)
+    output = paths.topology_dir / "vr_feasibility_smoke.csv"
+    pd.DataFrame(rows).to_csv(output, index=False)
+    return output
+
+
+def _diagram_artifact_path(
+    paths: Delivery7Paths,
+    *,
+    dataset: str,
+    spec: Delivery6RunSpec,
+    class_name: str,
+) -> Path:
+    safe_class = class_name.replace("/", "_")
+    return (
+        paths.topology_dir
+        / "diagrams"
+        / dataset
+        / spec.split
+        / spec.representation
+        / f"seed{spec.seed}_{safe_class}.npz"
+    )
+
+
+def _diagram_summary_rows(
+    *,
+    dataset: str,
+    spec: Delivery6RunSpec,
+    class_name: str,
+    n_samples: int,
+    diagrams: dict[int, np.ndarray],
+    diagram_path: Path,
+    elapsed: float,
+    simplex_count: int,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for dim in (0, 1):
+        row = diagram_summary(diagrams[dim], homology_dim=dim)
+        rows.append(
+            {
+                "dataset": dataset,
+                "training_split": spec.split,
+                "seed": spec.seed,
+                "representation": spec.representation,
+                "class": class_name,
+                "n_samples": n_samples,
+                "runtime_seconds": elapsed,
+                "simplex_count": simplex_count,
+                "diagram_path": str(diagram_path),
+                "gudhi_version": _vr_library_version(),
+                "vr_config_hash": vr_config_hash(),
+                **row,
+            }
+        )
+    return rows
+
+
+def _betti_curve_rows(
+    *,
+    dataset: str,
+    spec: Delivery6RunSpec,
+    class_name: str,
+    diagrams: dict[int, np.ndarray],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for dim in (0, 1):
+        values = betti_curve(diagrams[dim], VR_EPSILON_GRID)
+        rows.extend(
+            {
+                "dataset": dataset,
+                "training_split": spec.split,
+                "seed": spec.seed,
+                "representation": spec.representation,
+                "class": class_name,
+                "homology_dim": dim,
+                "epsilon": float(epsilon),
+                "betti": float(value),
+            }
+            for epsilon, value in zip(VR_EPSILON_GRID, values, strict=True)
+        )
+    return rows
+
+
+def _pairwise_seed_bottleneck(summary: pd.DataFrame) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    h1 = summary.loc[summary["homology_dim"] == 1].copy()
+    for keys, group in h1.groupby(["dataset", "training_split", "representation", "class"]):
+        dataset, split, representation, class_name = keys
+        by_seed = {int(row["seed"]): str(row["diagram_path"]) for row in group.to_dict("records")}
+        for seed_a, seed_b in combinations(sorted(by_seed), 2):
+            diag_a = _load_saved_diagrams(Path(by_seed[seed_a]))
+            diag_b = _load_saved_diagrams(Path(by_seed[seed_b]))
+            rows.append(
+                {
+                    "dataset": dataset,
+                    "training_split": split,
+                    "representation": representation,
+                    "class": class_name,
+                    "seed_a": seed_a,
+                    "seed_b": seed_b,
+                    "h0_bottleneck": bottleneck_distance(diag_a[0], diag_b[0]),
+                    "h1_bottleneck": bottleneck_distance(diag_a[1], diag_b[1]),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def _pairwise_split_bottleneck(summary: pd.DataFrame) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    h1 = summary.loc[summary["homology_dim"] == 1].copy()
+    for keys, group in h1.groupby(["dataset", "representation", "seed", "class"]):
+        dataset, representation, seed, class_name = keys
+        by_split = {
+            str(row["training_split"]): str(row["diagram_path"]) for row in group.to_dict("records")
+        }
+        if "v1" not in by_split or "v2" not in by_split:
+            continue
+        diag_v1 = _load_saved_diagrams(Path(by_split["v1"]))
+        diag_v2 = _load_saved_diagrams(Path(by_split["v2"]))
+        rows.append(
+            {
+                "dataset": dataset,
+                "representation": representation,
+                "seed": int(seed),
+                "class": class_name,
+                "split_a": "v1",
+                "split_b": "v2",
+                "h0_bottleneck": bottleneck_distance(diag_v1[0], diag_v2[0]),
+                "h1_bottleneck": bottleneck_distance(diag_v1[1], diag_v2[1]),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _mixing_pairs_for_dataset(dataset: str, classes: set[str]) -> list[tuple[str, str]]:
+    pairs: list[tuple[str, str]] = []
+    for class_a, class_b in (
+        ("lymphocyte", "lymphocyte_large_granular"),
+        ("lymphocyte", "lymphocyte_neoplastic"),
+        ("lymphocyte", "lymphocyte_reactive"),
+        ("lymphocyte", "hairy_cell"),
+        ("neutrophil_segmented", "neutrophil_band"),
+    ):
+        if class_a in classes and class_b in classes:
+            pairs.append((class_a, class_b))
+    if dataset == "AML_LMU_external_test":
+        for class_a, class_b in (
+            ("lymphocyte", "lymphocyte_atypical"),
+            ("neutrophil_segmented", "neutrophil_band"),
+            ("monocyte", "monoblast"),
+            ("neutrophil_segmented", "metamyelocyte"),
+            ("neutrophil_segmented", "myelocyte"),
+        ):
+            if class_a in classes and class_b in classes and (class_a, class_b) not in pairs:
+                pairs.append((class_a, class_b))
+    return pairs
+
+
+def _run_cloud_mixing(
+    *,
+    dataset: str,
+    spec: Delivery6RunSpec,
+    archive: EmbeddingArchive,
+    sample_manifest: pd.DataFrame,
+) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    classes = set(sample_manifest.loc[sample_manifest["dataset"] == dataset, "class"].astype(str))
+    for class_a, class_b in _mixing_pairs_for_dataset(dataset, classes):
+        ids_a = sample_manifest.loc[
+            (sample_manifest["dataset"] == dataset) & (sample_manifest["class"] == class_a),
+            "sample_id",
+        ]
+        ids_b = sample_manifest.loc[
+            (sample_manifest["dataset"] == dataset) & (sample_manifest["class"] == class_b),
+            "sample_id",
+        ]
+        embeddings_a = _select_embeddings_by_ids(archive, ids_a)
+        embeddings_b = _select_embeddings_by_ids(archive, ids_b)
+        if len(embeddings_a) < 2 or len(embeddings_b) < 2:
+            continue
+        stats_row = cross_class_mixing(embeddings_a, embeddings_b, k=10)
+        rows.append(
+            {
+                "dataset": dataset,
+                "training_split": spec.split,
+                "seed": spec.seed,
+                "representation": spec.representation,
+                "class_a": class_a,
+                "class_b": class_b,
+                "n_a": len(embeddings_a),
+                "n_b": len(embeddings_b),
+                **stats_row,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _write_vr_figures(
+    paths: Delivery7Paths,
+    summary: pd.DataFrame,
+    seed_pairs: pd.DataFrame,
+) -> None:
+    import matplotlib.pyplot as plt
+
+    paths.figures_dir.mkdir(parents=True, exist_ok=True)
+    h1 = summary.loc[summary["homology_dim"] == 1].copy()
+    if not h1.empty:
+        pivot = h1.pivot_table(
+            index="class",
+            columns="representation",
+            values="max_persistence",
+            aggfunc="mean",
+        ).sort_index()
+        fig, ax = plt.subplots(figsize=(8, max(4, 0.28 * len(pivot))))
+        pivot.plot(kind="barh", ax=ax)
+        ax.set_xlabel("Mean H1 max persistence")
+        ax.set_ylabel("Class")
+        ax.set_title("Delivery 7 VR H1 persistence")
+        fig.tight_layout()
+        fig.savefig(paths.figures_dir / "vr_h1_max_persistence_by_class.png", dpi=180)
+        plt.close(fig)
+    if not seed_pairs.empty:
+        stability = seed_pairs.pivot_table(
+            index="class",
+            columns="representation",
+            values="h1_bottleneck",
+            aggfunc="mean",
+        ).sort_index()
+        fig, ax = plt.subplots(figsize=(8, max(4, 0.28 * len(stability))))
+        stability.plot(kind="barh", ax=ax)
+        ax.set_xlabel("Mean pairwise seed H1 bottleneck")
+        ax.set_ylabel("Class")
+        ax.set_title("Delivery 7 VR seed stability")
+        fig.tight_layout()
+        fig.savefig(paths.figures_dir / "vr_seed_stability_h1_bottleneck.png", dpi=180)
+        plt.close(fig)
+
+
+def topology_osr_correlations(paths: Delivery7Paths, summary: pd.DataFrame) -> pd.DataFrame:
+    """Exploratory correlations between fixed VR summaries and frozen OSR metrics."""
+
+    d6_path = Path("artifacts/metrics/delivery6/run_level_results.csv")
+    if not d6_path.exists():
+        return pd.DataFrame()
+    h1 = summary.loc[
+        (summary["dataset"] == "MLL23_common_test") & (summary["homology_dim"] == 1)
+    ].copy()
+    if h1.empty:
+        return pd.DataFrame()
+    topo_rows = []
+    for keys, group in h1.groupby(["training_split", "seed", "representation"]):
+        split, seed, representation = keys
+        known = group.loc[group["class"].isin(DEFAULT_KNOWN_CLASSES)]
+        row: dict[str, Any] = {
+            "split": split,
+            "seed": int(seed),
+            "representation": representation,
+            "mean_known_h1_max_persistence": float(known["max_persistence"].mean()),
+            "mean_known_h1_total_persistence": float(known["total_persistence"].mean()),
+        }
+        for class_name in ("lymphocyte", "neutrophil_segmented"):
+            class_rows = group.loc[group["class"] == class_name]
+            if not class_rows.empty:
+                row[f"{class_name}_h1_max_persistence"] = float(
+                    class_rows["max_persistence"].iloc[0]
+                )
+        topo_rows.append(row)
+    topo = pd.DataFrame(topo_rows)
+    osr = pd.read_csv(d6_path)
+    joined = topo.merge(osr, on=["split", "seed", "representation"], how="inner")
+    rows: list[dict[str, Any]] = []
+    topo_metrics = [
+        "mean_known_h1_max_persistence",
+        "mean_known_h1_total_persistence",
+        "lymphocyte_h1_max_persistence",
+        "neutrophil_segmented_h1_max_persistence",
+    ]
+    osr_metrics = ["msp_auroc", "vim_auroc", "msp_fpr95", "vim_fpr95"]
+    for topo_metric in topo_metrics:
+        if topo_metric not in joined:
+            continue
+        for osr_metric in osr_metrics:
+            if osr_metric not in joined:
+                continue
+            valid = joined[[topo_metric, osr_metric]].dropna()
+            if len(valid) < 3:
+                continue
+            pearson = stats.pearsonr(valid[topo_metric], valid[osr_metric])
+            spearman = stats.spearmanr(valid[topo_metric], valid[osr_metric])
+            rows.append(
+                {
+                    "dataset": "MLL23_common_test",
+                    "topology_metric": topo_metric,
+                    "osr_metric": osr_metric,
+                    "pearson_r": float(pearson.statistic),
+                    "pearson_p": float(pearson.pvalue),
+                    "spearman_r": float(spearman.statistic),
+                    "spearman_p": float(spearman.pvalue),
+                    "n_runs": int(len(valid)),
+                    "role": "exploratory_no_model_selection",
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def run_vr_analysis(paths: Delivery7Paths) -> Path:
+    """Run explanatory VR topology analysis over frozen Delivery 6 embeddings."""
+
+    run_vr_feasibility_smoke(paths)
+    sample_manifest_path = build_vr_sample_manifest(paths)
+    sample_manifest = pd.read_csv(sample_manifest_path)
+    summary_rows: list[dict[str, Any]] = []
+    betti_rows: list[dict[str, Any]] = []
+    mixing_frames: list[pd.DataFrame] = []
+    for spec in build_run_matrix():
+        internal = load_embeddings(paths.internal_embedding_dir / f"{spec.run_id}_embeddings.npz")
+        external = load_embeddings(
+            paths.external_embedding_dir / f"{spec.run_id}_external_embeddings.npz"
+        )
+        for dataset, archive in (
+            ("MLL23_common_test", internal),
+            ("AML_LMU_external_test", external),
+        ):
+            dataset_manifest = sample_manifest.loc[sample_manifest["dataset"] == dataset]
+            for class_name, group in dataset_manifest.groupby("class"):
+                embeddings = _select_embeddings_by_ids(archive, group["sample_id"])
+                if len(embeddings) < 2:
+                    continue
+                diagrams, elapsed, simplex_count = _rips_diagrams_with_metadata(embeddings)
+                diagram_path = _diagram_artifact_path(
+                    paths,
+                    dataset=dataset,
+                    spec=spec,
+                    class_name=str(class_name),
+                )
+                _save_diagrams(diagram_path, diagrams)
+                summary_rows.extend(
+                    _diagram_summary_rows(
+                        dataset=dataset,
+                        spec=spec,
+                        class_name=str(class_name),
+                        n_samples=len(embeddings),
+                        diagrams=diagrams,
+                        diagram_path=diagram_path,
+                        elapsed=elapsed,
+                        simplex_count=simplex_count,
+                    )
+                )
+                betti_rows.extend(
+                    _betti_curve_rows(
+                        dataset=dataset,
+                        spec=spec,
+                        class_name=str(class_name),
+                        diagrams=diagrams,
+                    )
+                )
+            mixing = _run_cloud_mixing(
+                dataset=dataset,
+                spec=spec,
+                archive=archive,
+                sample_manifest=sample_manifest,
+            )
+            if not mixing.empty:
+                mixing_frames.append(mixing)
+    paths.topology_dir.mkdir(parents=True, exist_ok=True)
+    paths.metrics_dir.mkdir(parents=True, exist_ok=True)
+    summary = pd.DataFrame(summary_rows)
+    summary_path = paths.topology_dir / "vr_diagram_summaries.csv"
+    summary.to_csv(summary_path, index=False)
+    pd.DataFrame(betti_rows).to_csv(paths.topology_dir / "vr_betti_curves.csv", index=False)
+    seed_pairs = _pairwise_seed_bottleneck(summary)
+    seed_pairs.to_csv(paths.topology_dir / "vr_seed_pair_bottleneck.csv", index=False)
+    split_pairs = _pairwise_split_bottleneck(summary)
+    split_pairs.to_csv(paths.topology_dir / "vr_split_pair_bottleneck.csv", index=False)
+    if mixing_frames:
+        pd.concat(mixing_frames, ignore_index=True).to_csv(
+            paths.topology_dir / "vr_cross_class_mixing.csv",
+            index=False,
+        )
+    correlations = topology_osr_correlations(paths, summary)
+    if not correlations.empty:
+        correlations.to_csv(paths.metrics_dir / "vr_topology_osr_correlations.csv", index=False)
+    metadata = {
+        "role": "explanatory_only_not_classifier_or_osr_score",
+        "sample_manifest": str(sample_manifest_path),
+        "N_VR": N_VR,
+        "sample_seed": VR_SAMPLE_SEED,
+        "distance": "cosine_on_l2_normalized_embeddings",
+        "homology_dimensions": [0, 1],
+        "epsilon_grid_size": len(VR_EPSILON_GRID),
+        "gudhi_version": _vr_library_version(),
+        "vr_config_hash": vr_config_hash(),
+    }
+    write_json(paths.topology_dir / "vr_metadata.json", metadata)
+    _write_vr_figures(paths, summary, seed_pairs)
+    return summary_path
 
 
 def vr_config_hash() -> str:

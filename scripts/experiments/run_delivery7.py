@@ -8,8 +8,10 @@ import argparse
 from hemato_osr.experiments.delivery7 import (
     Delivery7Paths,
     build_external_manifest,
+    build_vr_sample_manifest,
     export_all_external_embeddings,
     run_external_evaluation,
+    run_vr_analysis,
     write_external_audit_update,
 )
 
@@ -22,6 +24,8 @@ def build_parser() -> argparse.ArgumentParser:
             "build-external-manifest",
             "export-external-embeddings",
             "evaluate-external",
+            "build-vr-sample-manifest",
+            "analyze-vr",
         ],
     )
     parser.add_argument("--device", default="auto")
@@ -47,6 +51,12 @@ def main() -> None:
         return
     if args.command == "evaluate-external":
         run_external_evaluation(paths)
+        return
+    if args.command == "build-vr-sample-manifest":
+        build_vr_sample_manifest(paths)
+        return
+    if args.command == "analyze-vr":
+        run_vr_analysis(paths)
         return
     raise AssertionError(args.command)
 
