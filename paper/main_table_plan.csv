@@ -1,0 +1,5 @@
+table,artifact,purpose
+1,paper/tables/table1_datasets_protocol.tex,Datasets and protocol
+2,paper/tables/table2_internal_multiseed.tex,Internal multiseed results
+3,paper/tables/table3_external_results.tex,External results
+4,paper/tables/table4_claim_evidence.tex,Claim-evidence summary

@@ -1,0 +1,31 @@
+\section{Internal Results}
+
+\subsection{Closed-Set Classification Is Strong Internally}
+
+Internal closed-set recognition is consistently strong across five training seeds. For CE, closed-set macro-F1 is 0.970 $\pm$ 0.004 on V1 and 0.970 $\pm$ 0.004 on V2. For ArcFace, closed-set macro-F1 is 0.970 $\pm$ 0.004 on V1 and 0.969 $\pm$ 0.005 on V2. These values show that the models learn the known mature leukocyte taxonomy well. They do not, by themselves, establish open-set reliability.
+
+\subsection{Internal Open-Set Performance}
+
+The internal MLL23 open-set results are stronger than the external results but remain imperfect. CE+MSP reaches AUROC 0.868 $\pm$ 0.014 on V1 and 0.872 $\pm$ 0.019 on V2. CE+ViM reaches AUROC 0.877 $\pm$ 0.004 on V1 and 0.874 $\pm$ 0.008 on V2. The small standard deviation of CE+ViM supports its role as the conservative internal-stability baseline. However, the corresponding FPR@95TPR values remain high: 0.484 $\pm$ 0.027 on V1 and 0.528 $\pm$ 0.050 on V2. Thus, even the best internal baseline requires many known samples to be falsely flagged when the unknown true-positive rate is fixed at 95\%.
+
+\input{tables/table2_internal_multiseed}
+
+\subsection{ArcFace Improves Some Geometry but Fails Confirmation}
+
+ArcFace shows the pattern that motivated a confirmatory evaluation. On V1 with MSP, ArcFace reaches AUROC 0.881 $\pm$ 0.012, compared with 0.868 $\pm$ 0.014 for CE+MSP. The matched V1 AUROC delta is +0.013 across five seed pairs, with four of five seeds favorable. However, the seed-level confidence interval crosses zero in the frozen Delivery 6 decision artifact, and the V2 result reverses direction. On V2, ArcFace+MSP reaches AUROC 0.852 $\pm$ 0.030, compared with 0.872 $\pm$ 0.019 for CE+MSP; the matched V2 delta is -0.020 and only one of five seeds is favorable.
+
+ArcFace also changes the known-class embedding geometry. The Fisher ratio is higher for ArcFace than CE on both split protocols: 3.210 $\pm$ 0.181 versus 2.703 $\pm$ 0.065 on V1 and 3.234 $\pm$ 0.323 versus 2.691 $\pm$ 0.092 on V2. Within-class dispersion is much smaller because the ArcFace representation is normalized and angular. These geometric changes are real, but they do not provide a robust open-set improvement. Across the 20 runs, Fisher ratio has weak association with MSP AUROC: Pearson $r=-0.138$ and Spearman $\rho=0.030$. The result supports a limited conclusion: better known-class geometry, as measured here, does not guarantee better unknown rejection.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/figure2_internal_performance.png}
+\caption{Internal MLL23 open-set performance over five seeds. Points are individual runs; horizontal bars are seed means.}
+\label{fig:internal-performance}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/figure3_arcface_stability.png}
+\caption{Matched ArcFace-minus-CE seed deltas for MSP. Positive AUROC deltas favor ArcFace; negative FPR@95TPR deltas favor ArcFace. The V1 trend does not reproduce under V2.}
+\label{fig:arcface-stability}
+\end{figure}

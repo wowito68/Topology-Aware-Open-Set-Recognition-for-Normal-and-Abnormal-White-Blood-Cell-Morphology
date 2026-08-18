@@ -1,0 +1,12 @@
+section_file,word_count_approx
+paper/sections/01_introduction.tex,885
+paper/sections/02_related_work.tex,598
+paper/sections/03_data_protocol.tex,437
+paper/sections/04_methods.tex,574
+paper/sections/05_internal_results.tex,399
+paper/sections/06_failure_analysis.tex,371
+paper/sections/07_external_validation.tex,485
+paper/sections/08_topological_analysis.tex,336
+paper/sections/09_discussion.tex,458
+paper/sections/10_limitations.tex,303
+paper/sections/11_conclusion.tex,192

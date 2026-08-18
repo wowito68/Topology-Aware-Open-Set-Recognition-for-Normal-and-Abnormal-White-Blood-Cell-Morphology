@@ -1,0 +1,35 @@
+\section{Methods}
+
+\subsection{Closed-Set Classifier}
+
+The principal classifier family is an ImageNet-pretrained ResNet18 \cite{he2016resnet}. Images are resized to 224 by 224, normalized with the training pipeline, and passed through the network to obtain logits and a 512-dimensional pre-logit embedding. Training uses AdamW, learning rate 0.0003, weight decay 0.0001, batch size 64, automatic mixed precision, and known-validation macro-F1 checkpoint selection. Weighted cross entropy is used where specified by the frozen configuration. These details are taken from the predeclared Delivery 6 configuration and are not reconstructed from memory.
+
+\subsection{Open-Set Prediction and Metrics}
+
+For input $x$, the closed-set classifier outputs logits $f_c(x)$ for $c\in\mathcal{Y}_K$ and predicts
+\[
+\hat{y}(x)=\arg\max_{c\in\mathcal{Y}_K} f_c(x).
+\]
+Open-set evaluation additionally defines an anomaly score $S(x)$, oriented so that larger values are more unknown-like. Threshold-free metrics are computed over known-test and unknown-test samples. AUROC and AUPR treat unknown samples as the positive class unless explicitly stated otherwise. FPR@95TPR is the false-positive rate among known samples at 95\% true-positive rate for unknown samples. OSCR summarizes the tradeoff between correct known classification and unknown rejection. Closed-set accuracy, balanced accuracy, macro-F1, ECE, NLL, and Brier score are used to characterize known-class classification and calibration.
+
+\subsection{Post-Hoc Open-Set Scores}
+
+MSP uses the negative maximum softmax probability as an unknownness score. Energy uses the negative log-sum-exp energy convention after orientation so that larger values indicate greater unknownness. Cosine kNN uses the mean cosine distance to the $k=5$ nearest known-training embeddings. Nearest-class-mean and Mahalanobis variants compare embeddings to class prototypes or covariance-normalized residuals fitted from known-training data. ReAct clips pre-classifier activations at a known-training percentile and recomputes an energy-like score. ViM fits a known-training PCA residual subspace and combines residual magnitude with logit evidence to form an unknownness score \cite{wang2022vim}. All method statistics are fitted using known-training data only.
+
+\subsection{Representation-Learning Ablations}
+
+Supervised contrastive learning is evaluated as a representation-learning alternative that did not improve open-set performance under the frozen protocol. The SupCon branch uses a projection head during training but evaluates the backbone embedding for open-set scoring. ArcFace uses normalized features and normalized class weights. If $z$ is the embedding and $w_c$ is the class weight, then
+\[
+\hat{z}=\frac{z}{\lVert z\rVert},\qquad \hat{w}_c=\frac{w_c}{\lVert w_c\rVert},\qquad \cos\theta_c=\hat{w}_c^\top \hat{z}.
+\]
+For the target class $y$, the training logit is $s\cos(\theta_y+m)$ with scale $s=30$ and angular margin $m=0.30$. At inference time there is no target margin because the target label is unavailable. ArcFace configuration is frozen before multiseed confirmation and is treated as a major ablation, not as a confirmed primary method.
+
+\subsection{Persistent Homology}
+
+Cubical persistent homology is computed over image-derived filtrations: raw grayscale sublevel and superlevel fields, morphology-candidate distance maps, and frozen CNN activation-energy maps. Vectorized persistence features and TDA anomaly scores are fitted with training-only statistics. These experiments test whether persistent homology provides predictive complementary information for open-set detection.
+
+Vietoris-Rips persistent homology is used differently. For a point cloud $X=\{z_1,\ldots,z_n\}$ of L2-normalized embeddings and cosine distance $d$, the Vietoris-Rips complex at scale $\epsilon$ is
+\[
+VR_\epsilon(X)=\{\sigma\subseteq X: d(z_i,z_j)\leq \epsilon\;\forall z_i,z_j\in\sigma\}.
+\]
+The analysis computes $H_0$ and $H_1$ summaries with GUDHI 3.13.0, using $N_{VR}=192$ samples per cloud and a fixed seed. These summaries are explanatory only. They are not used for prediction, thresholding, model selection, or scorer tuning.

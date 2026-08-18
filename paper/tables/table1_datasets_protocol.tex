@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llllllll}
+\toprule
+Dataset & Role & Images & Known & Unknown & Format & Training use & External use \\
+\midrule
+MLL23 & Internal development and multiseed evaluation & 41,621 & 5 & 13 & TIFF, 288x288 & Known train only & No \\
+AML-LMU & Independent external test-only validation & 18,365 & 5 mapped & 10 mapped & TIFF, 400x400x3 & None & Test only \\
+\bottomrule
+\end{tabular}
+}
+\caption{Datasets and open-set protocol roles. UNKNOWN denotes only outside the known training taxonomy.}
+\label{tab:datasets}
+\end{table}

@@ -1,0 +1,862 @@
+arcface_delta_v1_msp_auroc:
+  interpretation: ArcFace-minus-CE matched seed delta.
+  source_file: artifacts/metrics/delivery6/matched_seed_deltas.csv
+  source_row: split=v1; metric=msp_auroc; aggregate=mean_delta
+  uncertainty:
+    favorable_seeds: 4
+    n: 5
+    sd: 0.013146245634639496
+  value: 0.013003063957236698
+arcface_delta_v1_msp_fpr95:
+  interpretation: ArcFace-minus-CE matched seed delta.
+  source_file: artifacts/metrics/delivery6/matched_seed_deltas.csv
+  source_row: split=v1; metric=msp_fpr95; aggregate=mean_delta
+  uncertainty:
+    favorable_seeds: 2
+    n: 5
+    sd: 0.08800834288052063
+  value: -0.07016776075857042
+arcface_delta_v2_msp_auroc:
+  interpretation: ArcFace-minus-CE matched seed delta.
+  source_file: artifacts/metrics/delivery6/matched_seed_deltas.csv
+  source_row: split=v2; metric=msp_auroc; aggregate=mean_delta
+  uncertainty:
+    favorable_seeds: 1
+    n: 5
+    sd: 0.03692195800124999
+  value: -0.019911413471132556
+arcface_delta_v2_msp_fpr95:
+  interpretation: ArcFace-minus-CE matched seed delta.
+  source_file: artifacts/metrics/delivery6/matched_seed_deltas.csv
+  source_row: split=v2; metric=msp_fpr95; aggregate=mean_delta
+  uncertainty:
+    favorable_seeds: 4
+    n: 5
+    sd: 0.12764056471208984
+  value: 0.006783369803063438
+domain_shift_v1_arcface_msp:
+  interpretation: Internal-to-external degradation quantifies domain shift.
+  source_file: artifacts/metrics/delivery7/delivery75_internal_external_domain_shift_summary.csv
+  source_row: split=v1; representation=arcface; osr_method=msp
+  uncertainty:
+    delta_AUROC_ci95:
+    - -0.2374522791073594
+    - -0.1438849441219941
+    delta_FPR95_ci95:
+    - 0.1446742840382164
+    - 0.342685376409832
+    delta_closed_macro_f1_ci95:
+    - -0.2246929562538935
+    - -0.205678533991421
+  value:
+    delta_AUROC: -0.1906686116146767
+    delta_FPR95: 0.2436798302240242
+    delta_closed_macro_f1: -0.2151857451226573
+domain_shift_v1_arcface_vim:
+  interpretation: Internal-to-external degradation quantifies domain shift.
+  source_file: artifacts/metrics/delivery7/delivery75_internal_external_domain_shift_summary.csv
+  source_row: split=v1; representation=arcface; osr_method=vim
+  uncertainty:
+    delta_AUROC_ci95:
+    - -0.4009998658789589
+    - -0.2109484456717371
+    delta_FPR95_ci95:
+    - 0.2597905751450644
+    - 0.4120964112763375
+    delta_closed_macro_f1_ci95:
+    - -0.2246929562538935
+    - -0.205678533991421
+  value:
+    delta_AUROC: -0.305974155775348
+    delta_FPR95: 0.335943493210701
+    delta_closed_macro_f1: -0.2151857451226573
+domain_shift_v1_ce_msp:
+  interpretation: Internal-to-external degradation quantifies domain shift.
+  source_file: artifacts/metrics/delivery7/delivery75_internal_external_domain_shift_summary.csv
+  source_row: split=v1; representation=ce; osr_method=msp
+  uncertainty:
+    delta_AUROC_ci95:
+    - -0.2528612193316956
+    - -0.0913954255024306
+    delta_FPR95_ci95:
+    - 0.1643656174079572
+    - 0.39678208571788
+    delta_closed_macro_f1_ci95:
+    - -0.3173556982489628
+    - -0.2017239992705209
+  value:
+    delta_AUROC: -0.1721283224170631
+    delta_FPR95: 0.2805738515629186
+    delta_closed_macro_f1: -0.2595398487597419
+domain_shift_v1_ce_vim:
+  interpretation: Internal-to-external degradation quantifies domain shift.
+  source_file: artifacts/metrics/delivery7/delivery75_internal_external_domain_shift_summary.csv
+  source_row: split=v1; representation=ce; osr_method=vim
+  uncertainty:
+    delta_AUROC_ci95:
+    - -0.3431888531535284
+    - -0.1288109963613984
+    delta_FPR95_ci95:
+    - 0.1748682304416646
+    - 0.4269489352725949
+    delta_closed_macro_f1_ci95:
+    - -0.3173556982489628
+    - -0.2017239992705209
+  value:
+    delta_AUROC: -0.2359999247574634
+    delta_FPR95: 0.3009085828571298
+    delta_closed_macro_f1: -0.2595398487597419
+domain_shift_v2_arcface_msp:
+  interpretation: Internal-to-external degradation quantifies domain shift.
+  source_file: artifacts/metrics/delivery7/delivery75_internal_external_domain_shift_summary.csv
+  source_row: split=v2; representation=arcface; osr_method=msp
+  uncertainty:
+    delta_AUROC_ci95:
+    - -0.2273746657556854
+    - -0.0830596725383588
+    delta_FPR95_ci95:
+    - 0.0330576651544586
+    - 0.3389284858168883
+    delta_closed_macro_f1_ci95:
+    - -0.3068980787665222
+    - -0.2163513583741103
+  value:
+    delta_AUROC: -0.1552171691470221
+    delta_FPR95: 0.1859930754856735
+    delta_closed_macro_f1: -0.2616247185703163
+domain_shift_v2_arcface_vim:
+  interpretation: Internal-to-external degradation quantifies domain shift.
+  source_file: artifacts/metrics/delivery7/delivery75_internal_external_domain_shift_summary.csv
+  source_row: split=v2; representation=arcface; osr_method=vim
+  uncertainty:
+    delta_AUROC_ci95:
+    - -0.3245240220378022
+    - -0.1119243103864426
+    delta_FPR95_ci95:
+    - 0.1517447601533384
+    - 0.3272810129625536
+    delta_closed_macro_f1_ci95:
+    - -0.3068980787665222
+    - -0.2163513583741103
+  value:
+    delta_AUROC: -0.2182241662121224
+    delta_FPR95: 0.239512886557946
+    delta_closed_macro_f1: -0.2616247185703163
+domain_shift_v2_ce_msp:
+  interpretation: Internal-to-external degradation quantifies domain shift.
+  source_file: artifacts/metrics/delivery7/delivery75_internal_external_domain_shift_summary.csv
+  source_row: split=v2; representation=ce; osr_method=msp
+  uncertainty:
+    delta_AUROC_ci95:
+    - -0.352059016275244
+    - -0.1310130352308099
+    delta_FPR95_ci95:
+    - 0.2290035747792577
+    - 0.4837429540772892
+    delta_closed_macro_f1_ci95:
+    - -0.3013489912200336
+    - -0.2275719383332949
+  value:
+    delta_AUROC: -0.2415360257530269
+    delta_FPR95: 0.3563732644282734
+    delta_closed_macro_f1: -0.2644604647766643
+domain_shift_v2_ce_vim:
+  interpretation: Internal-to-external degradation quantifies domain shift.
+  source_file: artifacts/metrics/delivery7/delivery75_internal_external_domain_shift_summary.csv
+  source_row: split=v2; representation=ce; osr_method=vim
+  uncertainty:
+    delta_AUROC_ci95:
+    - -0.4446733372227778
+    - -0.1571633131198936
+    delta_FPR95_ci95:
+    - 0.2248575993236789
+    - 0.4540087609407393
+    delta_closed_macro_f1_ci95:
+    - -0.3013489912200336
+    - -0.2275719383332949
+  value:
+    delta_AUROC: -0.3009183251713357
+    delta_FPR95: 0.3394331801322091
+    delta_closed_macro_f1: -0.2644604647766643
+external_unknown_erythroblast:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=erythroblast
+  uncertainty:
+    AUROC_sd: 0.0564986681220779
+    FPR95_sd: 0.1374651640949893
+    n: 78
+  value:
+    AUROC_mean: 0.7923775764324938
+    FPR95_mean: 0.5495752056004893
+external_unknown_lymphocyte_atypical:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=lymphocyte_atypical
+  uncertainty:
+    AUROC_sd: 0.1278152878388253
+    FPR95_sd: 0.1805850864507646
+    n: 11
+  value:
+    AUROC_mean: 0.5969315941993166
+    FPR95_mean: 0.6870590634133079
+external_unknown_metamyelocyte:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=metamyelocyte
+  uncertainty:
+    AUROC_sd: 0.0781958813717174
+    FPR95_sd: 0.2019467473365854
+    n: 15
+  value:
+    AUROC_mean: 0.8673399941095177
+    FPR95_mean: 0.3582002310881533
+external_unknown_monoblast:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=monoblast
+  uncertainty:
+    AUROC_sd: 0.10079886961146
+    FPR95_sd: 0.1445999812027748
+    n: 26
+  value:
+    AUROC_mean: 0.575197235307342
+    FPR95_mean: 0.7144701964249304
+external_unknown_myeloblast:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=myeloblast
+  uncertainty:
+    AUROC_sd: 0.1211277854617507
+    FPR95_sd: 0.1399937748807606
+    n: 3268
+  value:
+    AUROC_mean: 0.5923798955968713
+    FPR95_mean: 0.818847277917488
+external_unknown_myelocyte:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=myelocyte
+  uncertainty:
+    AUROC_sd: 0.0429523023391367
+    FPR95_sd: 0.1206239284218949
+    n: 42
+  value:
+    AUROC_mean: 0.8802479504681638
+    FPR95_mean: 0.417814177937878
+external_unknown_neutrophil_band:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=neutrophil_band
+  uncertainty:
+    AUROC_sd: 0.0693661530019001
+    FPR95_sd: 0.0473021881861122
+    n: 109
+  value:
+    AUROC_mean: 0.5263844556115573
+    FPR95_mean: 0.9443009583361652
+external_unknown_promyelocyte:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=promyelocyte
+  uncertainty:
+    AUROC_sd: 0.0291028821426764
+    FPR95_sd: 0.0915379238102428
+    n: 70
+  value:
+    AUROC_mean: 0.8972851996776419
+    FPR95_mean: 0.4288792224563312
+external_unknown_promyelocyte_bilobled:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=promyelocyte_bilobled
+  uncertainty:
+    AUROC_sd: 0.0817369459971376
+    FPR95_sd: 0.1770561358465921
+    n: 18
+  value:
+    AUROC_mean: 0.8558194944757849
+    FPR95_mean: 0.4113505063549242
+external_unknown_smudge_cell:
+  interpretation: External CE+ViM per-morphology open-set result.
+  source_file: artifacts/metrics/delivery7/delivery75_external_unknown_morphology_summary_ce_vim.csv
+  source_row: canonical_label=smudge_cell
+  uncertainty:
+    AUROC_sd: 0.0621914775746072
+    FPR95_sd: 0.1755250749010694
+    n: 15
+  value:
+    AUROC_mean: 0.7822972881125534
+    FPR95_mean: 0.6110718412288452
+external_v1_arcface_msp_AUROC:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=arcface; osr_method=msp;
+    metric=AUROC
+  uncertainty:
+    ci95_high: 0.7464932468344917
+    ci95_low: 0.633742466506319
+    sd: 0.0454030963655553
+  value: 0.6901178566704054
+external_v1_arcface_msp_FPR95:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=arcface; osr_method=msp;
+    metric=FPR95
+  uncertainty:
+    ci95_high: 0.8212830010789499
+    ci95_low: 0.5560839533151233
+    sd: 0.1067917923639056
+  value: 0.6886834771970366
+external_v1_arcface_msp_OSCR:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=arcface; osr_method=msp;
+    metric=OSCR
+  uncertainty:
+    ci95_high: 0.7172434776867254
+    ci95_low: 0.609876733042563
+    sd: 0.0432350236454801
+  value: 0.6635601053646442
+external_v1_arcface_msp_closed_macro_f1:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=arcface; osr_method=msp;
+    metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.7656645677013861
+    ci95_low: 0.7436976122834084
+    sd: 0.0088457728700179
+  value: 0.7546810899923972
+external_v1_arcface_vim_AUROC:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=arcface; osr_method=vim;
+    metric=AUROC
+  uncertainty:
+    ci95_high: 0.6679707812377104
+    ci95_low: 0.4584697621745465
+    sd: 0.084363007772729
+  value: 0.5632202717061284
+external_v1_arcface_vim_FPR95:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=arcface; osr_method=vim;
+    metric=FPR95
+  uncertainty:
+    ci95_high: 0.9825915535893834
+    ci95_low: 0.7753639959246517
+    sd: 0.0834475179938029
+  value: 0.8789777747570175
+external_v1_arcface_vim_OSCR:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=arcface; osr_method=vim;
+    metric=OSCR
+  uncertainty:
+    ci95_high: 0.6410932879296047
+    ci95_low: 0.442737137049415
+    sd: 0.0798751317454395
+  value: 0.5419152124895099
+external_v1_arcface_vim_closed_macro_f1:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=arcface; osr_method=vim;
+    metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.7656645677013861
+    ci95_low: 0.7436976122834084
+    sd: 0.0088457728700179
+  value: 0.7546810899923972
+external_v1_ce_msp_AUROC:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=ce; osr_method=msp;
+    metric=AUROC
+  uncertainty:
+    ci95_high: 0.7870410340448999
+    ci95_low: 0.6042691297766649
+    sd: 0.0735995827102338
+  value: 0.6956550819107824
+external_v1_ce_msp_FPR95:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=ce; osr_method=msp;
+    metric=FPR95
+  uncertainty:
+    ci95_high: 0.9623177936639644
+    ci95_low: 0.6291727249250385
+    sd: 0.1341526649805687
+  value: 0.7957452592945015
+external_v1_ce_msp_OSCR:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=ce; osr_method=msp;
+    metric=OSCR
+  uncertainty:
+    ci95_high: 0.7489026082646434
+    ci95_low: 0.5790062925896652
+    sd: 0.0684147707917586
+  value: 0.6639544504271543
+external_v1_ce_msp_closed_macro_f1:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=ce; osr_method=msp;
+    metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.7739395157183153
+    ci95_low: 0.6478941721889027
+    sd: 0.050756623253857
+  value: 0.710916843953609
+external_v1_ce_vim_AUROC:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=ce; osr_method=vim;
+    metric=AUROC
+  uncertainty:
+    ci95_high: 0.7525463296850425
+    ci95_low: 0.5291269623474188
+    sd: 0.0899677238209491
+  value: 0.6408366460162307
+external_v1_ce_vim_FPR95:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=ce; osr_method=vim;
+    metric=FPR95
+  uncertainty:
+    ci95_high: 0.928707496919605
+    ci95_low: 0.6408704273650414
+    sd: 0.1159077938842388
+  value: 0.7847889621423232
+external_v1_ce_vim_OSCR:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=ce; osr_method=vim;
+    metric=OSCR
+  uncertainty:
+    ci95_high: 0.7047443451244992
+    ci95_low: 0.5104297612104443
+    sd: 0.0782476516171675
+  value: 0.6075870531674717
+external_v1_ce_vim_closed_macro_f1:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v1; representation=ce; osr_method=vim;
+    metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.7739395157183153
+    ci95_low: 0.6478941721889027
+    sd: 0.050756623253857
+  value: 0.710916843953609
+external_v2_arcface_msp_AUROC:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=arcface; osr_method=msp;
+    metric=AUROC
+  uncertainty:
+    ci95_high: 0.7823074880489107
+    ci95_low: 0.6105068369152875
+    sd: 0.0691816189332042
+  value: 0.6964071624820991
+external_v2_arcface_msp_FPR95:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=arcface; osr_method=msp;
+    metric=FPR95
+  uncertainty:
+    ci95_high: 0.9247690465158817
+    ci95_low: 0.5217612328289154
+    sd: 0.1622853744128732
+  value: 0.7232651396723985
+external_v2_arcface_msp_OSCR:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=arcface; osr_method=msp;
+    metric=OSCR
+  uncertainty:
+    ci95_high: 0.7528967772953072
+    ci95_low: 0.5664341799934351
+    sd: 0.0750857710184138
+  value: 0.6596654786443712
+external_v2_arcface_msp_closed_macro_f1:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=arcface; osr_method=msp;
+    metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.7528152532040431
+    ci95_low: 0.6626209592233829
+    sd: 0.0363199279801695
+  value: 0.707718106213713
+external_v2_arcface_vim_AUROC:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=arcface; osr_method=vim;
+    metric=AUROC
+  uncertainty:
+    ci95_high: 0.7393637700812821
+    ci95_low: 0.5238220379109795
+    sd: 0.0867955149227621
+  value: 0.6315929039961308
+external_v2_arcface_vim_FPR95:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=arcface; osr_method=vim;
+    metric=FPR95
+  uncertainty:
+    ci95_high: 0.9277554902452196
+    ci95_low: 0.7732979998655667
+    sd: 0.06219778080185
+  value: 0.8505267450553932
+external_v2_arcface_vim_OSCR:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=arcface; osr_method=vim;
+    metric=OSCR
+  uncertainty:
+    ci95_high: 0.7058005288270648
+    ci95_low: 0.4913007895784196
+    sd: 0.0863759195559138
+  value: 0.5985506592027422
+external_v2_arcface_vim_closed_macro_f1:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=arcface; osr_method=vim;
+    metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.7528152532040431
+    ci95_low: 0.6626209592233829
+    sd: 0.0363199279801695
+  value: 0.707718106213713
+external_v2_ce_msp_AUROC:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=ce; osr_method=msp;
+    metric=AUROC
+  uncertainty:
+    ci95_high: 0.7470508105827167
+    ci95_low: 0.512948628111737
+    sd: 0.0942695378176544
+  value: 0.6299997193472269
+external_v2_ce_msp_FPR95:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=ce; osr_method=msp;
+    metric=FPR95
+  uncertainty:
+    ci95_high: 1.01071465627539
+    ci95_low: 0.7630092613484798
+    sd: 0.0997473532635439
+  value: 0.886861958811935
+external_v2_ce_msp_OSCR:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=ce; osr_method=msp;
+    metric=OSCR
+  uncertainty:
+    ci95_high: 0.698915135178225
+    ci95_low: 0.4986372450885648
+    sd: 0.0806489881237554
+  value: 0.5987761901333949
+external_v2_ce_msp_closed_macro_f1:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=ce; osr_method=msp;
+    metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.7427199676888083
+    ci95_low: 0.6679625826587681
+    sd: 0.0301037096743511
+  value: 0.7053412751737882
+external_v2_ce_vim_AUROC:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=ce; osr_method=vim;
+    metric=AUROC
+  uncertainty:
+    ci95_high: 0.7262785834812053
+    ci95_low: 0.4197917379793743
+    sd: 0.1234177869154641
+  value: 0.5730351607302898
+external_v2_ce_vim_FPR95:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=ce; osr_method=vim;
+    metric=FPR95
+  uncertainty:
+    ci95_high: 1.0390675468634196
+    ci95_low: 0.6956704399509619
+    sd: 0.1382810113723311
+  value: 0.8673689934071908
+external_v2_ce_vim_OSCR:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=ce; osr_method=vim;
+    metric=OSCR
+  uncertainty:
+    ci95_high: 0.6731651158918042
+    ci95_low: 0.4072180220429295
+    sd: 0.1070930196227012
+  value: 0.5401915689673669
+external_v2_ce_vim_closed_macro_f1:
+  interpretation: External AML-LMU result without external training or tuning.
+  source_file: artifacts/metrics/delivery7/final_scientific_summary.csv
+  source_row: domain=AML_LMU_external; split=v2; representation=ce; osr_method=vim;
+    metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.7427199676888083
+    ci95_low: 0.6679625826587681
+    sd: 0.0301037096743511
+  value: 0.7053412751737882
+internal_v1_arcface_closed_macro_f1:
+  interpretation: Internal closed-set classification is high across five seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=arcface; metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.9744450609342816
+    ci95_low: 0.9652886092958272
+    sd: 0.0036871696576935
+  value: 0.9698668351150544
+internal_v1_arcface_msp_auroc:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=arcface; metric=msp_auroc
+  uncertainty:
+    ci95_high: 0.8962731655281325
+    ci95_low: 0.8652997710420317
+    sd: 0.0124725346514468
+  value: 0.8807864682850821
+internal_v1_arcface_msp_fpr95:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=arcface; metric=msp_fpr95
+  uncertainty:
+    ci95_high: 0.5022983762414077
+    ci95_low: 0.3877089177046171
+    sd: 0.0461435052890958
+  value: 0.4450036469730124
+internal_v1_arcface_msp_oscr:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=arcface; metric=msp_oscr
+  uncertainty:
+    ci95_high: 0.8877974013535388
+    ci95_low: 0.8577419265130062
+    sd: 0.0121029017850288
+  value: 0.8727696639332725
+internal_v1_arcface_vim_auroc:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=arcface; metric=vim_auroc
+  uncertainty:
+    ci95_high: 0.8863620038172917
+    ci95_low: 0.8520268511456612
+    sd: 0.0138262656891481
+  value: 0.8691944274814765
+internal_v1_arcface_vim_fpr95:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=arcface; metric=vim_fpr95
+  uncertainty:
+    ci95_high: 0.620193900600351
+    ci95_low: 0.4658746624922822
+    sd: 0.0621421086265335
+  value: 0.5430342815463166
+internal_v1_arcface_vim_oscr:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=arcface; metric=vim_oscr
+  uncertainty:
+    ci95_high: 0.8760214601047334
+    ci95_low: 0.8441984674432153
+    sd: 0.0128146554573356
+  value: 0.8601099637739743
+internal_v1_ce_closed_macro_f1:
+  interpretation: Internal closed-set classification is high across five seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=ce; metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.976021577120164
+    ci95_low: 0.9648918083065376
+    sd: 0.0044817957312635
+  value: 0.9704566927133508
+internal_v1_ce_msp_auroc:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=ce; metric=msp_auroc
+  uncertainty:
+    ci95_high: 0.8850794802587753
+    ci95_low: 0.8504873283969158
+    sd: 0.0139297555183615
+  value: 0.8677834043278455
+internal_v1_ce_msp_fpr95:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=ce; metric=msp_fpr95
+  uncertainty:
+    ci95_high: 0.5912165020408429
+    ci95_low: 0.4391263134223227
+    sd: 0.0612445028761964
+  value: 0.5151714077315828
+internal_v1_ce_msp_oscr:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=ce; metric=msp_oscr
+  uncertainty:
+    ci95_high: 0.8783849726968304
+    ci95_low: 0.8424389729421039
+    sd: 0.0144749303381298
+  value: 0.8604119728194671
+internal_v1_ce_vim_auroc:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=ce; metric=vim_auroc
+  uncertainty:
+    ci95_high: 0.8822630566821693
+    ci95_low: 0.8714100848652188
+    sd: 0.0043703336138645
+  value: 0.876836570773694
+internal_v1_ce_vim_fpr95:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=ce; metric=vim_fpr95
+  uncertainty:
+    ci95_high: 0.5170120528089917
+    ci95_low: 0.4507487057613948
+    sd: 0.0266832843440156
+  value: 0.4838803792851932
+internal_v1_ce_vim_oscr:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v1; representation=ce; metric=vim_oscr
+  uncertainty:
+    ci95_high: 0.872624106882932
+    ci95_low: 0.8602009216781233
+    sd: 0.0050026356658405
+  value: 0.8664125142805277
+internal_v2_arcface_closed_macro_f1:
+  interpretation: Internal closed-set classification is high across five seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=arcface; metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.9751755109391312
+    ci95_low: 0.9635101386289274
+    sd: 0.004697475455147
+  value: 0.9693428247840292
+internal_v2_arcface_msp_auroc:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=arcface; metric=msp_auroc
+  uncertainty:
+    ci95_high: 0.8883875282873412
+    ci95_low: 0.8148611349709016
+    sd: 0.0296080072478567
+  value: 0.8516243316291214
+internal_v2_arcface_msp_fpr95:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=arcface; metric=msp_fpr95
+  uncertainty:
+    ci95_high: 0.6163319587457807
+    ci95_low: 0.4582121696276691
+    sd: 0.0636725351410902
+  value: 0.5372720641867249
+internal_v2_arcface_msp_oscr:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=arcface; metric=msp_oscr
+  uncertainty:
+    ci95_high: 0.8804986764993816
+    ci95_low: 0.8075686496374876
+    sd: 0.0293678591661662
+  value: 0.8440336630684346
+internal_v2_arcface_vim_auroc:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=arcface; metric=vim_auroc
+  uncertainty:
+    ci95_high: 0.8812855524893407
+    ci95_low: 0.8183485879271654
+    sd: 0.0253437985852944
+  value: 0.849817070208253
+internal_v2_arcface_vim_fpr95:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=arcface; metric=vim_fpr95
+  uncertainty:
+    ci95_high: 0.7173437689104548
+    ci95_low: 0.5046839480844395
+    sd: 0.0856350112162617
+  value: 0.6110138584974472
+internal_v2_arcface_vim_oscr:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=arcface; metric=vim_oscr
+  uncertainty:
+    ci95_high: 0.8713512487287065
+    ci95_low: 0.8108609243344962
+    sd: 0.0243585722392361
+  value: 0.8411060865316013
+internal_v2_ce_closed_macro_f1:
+  interpretation: Internal closed-set classification is high across five seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=ce; metric=closed_macro_f1
+  uncertainty:
+    ci95_high: 0.9741627273841348
+    ci95_low: 0.9654407525167704
+    sd: 0.0035122121926631
+  value: 0.9698017399504526
+internal_v2_ce_msp_auroc:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=ce; metric=msp_auroc
+  uncertainty:
+    ci95_high: 0.895579810028379
+    ci95_low: 0.8474916801721287
+    sd: 0.019364389209084
+  value: 0.8715357451002539
+internal_v2_ce_msp_fpr95:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=ce; metric=msp_fpr95
+  uncertainty:
+    ci95_high: 0.658440081628084
+    ci95_low: 0.4025373071392391
+    sd: 0.1030483185705001
+  value: 0.5304886943836615
+internal_v2_ce_msp_oscr:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=ce; metric=msp_oscr
+  uncertainty:
+    ci95_high: 0.8874088441662499
+    ci95_low: 0.8397781781400399
+    sd: 0.0191801751903551
+  value: 0.8635935111531449
+internal_v2_ce_vim_auroc:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=ce; metric=vim_auroc
+  uncertainty:
+    ci95_high: 0.8844809757712869
+    ci95_low: 0.8634259960319642
+    sd: 0.0084785335524673
+  value: 0.8739534859016256
+internal_v2_ce_vim_fpr95:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=ce; metric=vim_fpr95
+  uncertainty:
+    ci95_high: 0.590379455875082
+    ci95_low: 0.4654921706748814
+    sd: 0.0502902900385559
+  value: 0.5279358132749817
+internal_v2_ce_vim_oscr:
+  interpretation: Internal open-set result over five training seeds.
+  source_file: artifacts/metrics/delivery6/multiseed_summary.csv
+  source_row: split=v2; representation=ce; metric=vim_oscr
+  uncertainty:
+    ci95_high: 0.8739454666715986
+    ci95_low: 0.852774393154662
+    sd: 0.0085252828251296
+  value: 0.8633599299131303

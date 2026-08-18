@@ -1,0 +1,11 @@
+claim_id,paper_section,claim_text,evidence_artifact,metric,support_status
+C1,External Validation,Closed-set accuracy alone overstates external reliability; macro-F1/balanced accuracy reveal domain degradation.,Internal D6 closed macro-F1 near 0.97; external closed macro-F1 about 0.71-0.75 depending representation/split.,see source artifact,SUPPORTED
+C2,Open-Set Results,No OSR score is uniformly reliable; ViM stability internally does not transfer cleanly to AML-LMU.,External MSP AUROC exceeds ViM for CE and ArcFace in V1/V2 means.,see source artifact,PARTIALLY_SUPPORTED
+C3,Discussion,"CE+ViM is the conservative internal baseline, not the external winner.",Internal CE+ViM was stable.,see source artifact,NOT_SUPPORTED
+C4,Supplement,Cubical PH is a negative ablation and should not be promoted as a predictive method.,None in confirmatory artifacts.,see source artifact,NOT_SUPPORTED
+C5,Representation Analysis,"ArcFace is an informative instability/negative ablation, not a confirmed main method.",Some external ArcFace+MSP means are favorable.,see source artifact,NOT_SUPPORTED
+C6,Failure Analysis,"Unknown rejection difficulty is strongly morphology-dependent, with small-class uncertainty acknowledged.",External per-unknown AUROC varies widely by mapped unknown class; internal D6 also shows class-specific failures.,see source artifact,SUPPORTED
+C7,External Validation,External acquisition/domain shift materially changes both closed-set and OSR behavior.,All major systems lose AUROC and closed macro-F1 externally and increase FPR95.,see source artifact,SUPPORTED
+C8,Representation and Failure Analysis,Conventional geometry provides the primary failure explanation; VR is a secondary descriptive lens.,Attractor and cross-class mixing align with lymphocyte-like and neutrophil-band failures.,see source artifact,PARTIALLY_SUPPORTED
+C9,Supplement or Secondary Analysis,VR is explanatory/descriptive only; avoid causal or predictive claims.,VR artifacts show measurable seed/split/domain variation.,see source artifact,NOT_SUPPORTED
+C10,Discussion,External validation reveals limited OSR generalization under domain shift.,Some closed accuracy remains high.,see source artifact,NOT_SUPPORTED

@@ -1,0 +1,25 @@
+\section{Related Work}
+
+\subsection{Automated Hematological Cell Classification}
+
+Deep learning has been widely applied to microscopic blood cell classification, where the dominant evaluation setup is often closed-set recognition over a fixed label inventory. In that setting, the model is evaluated only on classes that appear during training, and every image is expected to receive one of those labels. The MLL23 dataset provides a recent large-scale expert-annotated resource for peripheral blood single-cell morphology research \cite{mll23_nature_2025,mll23_zenodo_2024}. The AML-LMU collection provides an independent single-cell leukocyte morphology dataset from a different source and acquisition context \cite{aml_lmu_tcia_2019}. A broader review citation for automated hematological cell classification remains to be verified before submission \cite{TODO_hematology_ai_review}.
+
+Our study differs from standard closed-set classification work in two ways. First, the unknown classes are not incidental anomalies but named hematological morphologies deliberately excluded from the known training taxonomy. Second, the central evaluation asks whether systems trained on mature leukocytes can reject out-of-taxonomy morphologies, not whether they can assign a disease status. This places the work closer to open-set recognition and out-of-distribution detection than to diagnostic classification.
+
+\subsection{Open-Set Recognition and OOD Detection}
+
+Open-set recognition formalizes the setting in which test inputs may not belong to any class observed during training. OpenMax and related work emphasized that deep networks trained under closed-set assumptions can assign high confidence to inputs outside the training taxonomy \cite{bendale2016openmax}. Maximum softmax probability remains an important baseline because it is simple, model-agnostic, and often difficult to beat robustly \cite{hendrycks2017baseline}. Energy-based scores, ReAct, and other post-hoc approaches attempt to improve unknown detection by using logits, activations, or feature-space structure \cite{liu2020energy,sun2021react}.
+
+The present work uses these methods as controlled baselines rather than as a venue for open-ended score engineering. The main post-hoc methods are fit using known-training data only, with thresholds calibrated from known-validation samples where thresholds are reported. Unknown-test samples are reserved for final reporting and analysis. This is important because small choices in score orientation, calibration, or PCA fitting can otherwise leak unknown-test information into method selection.
+
+\subsection{Representation Learning for Open-Set Recognition}
+
+Representation learning can improve the structure of known-class embeddings. Supervised contrastive learning encourages same-class samples to cluster while separating different classes \cite{khosla2020supcon}. ArcFace uses an additive angular margin during training to improve class separability in normalized embedding space \cite{deng2019arcface}. Such losses are attractive for open-set recognition because unknown rejection often depends on how known and unknown samples are arranged in feature space.
+
+However, improved known-class geometry is not equivalent to improved open-set reliability. A representation can compress the known classes while also pulling morphologically related unknowns toward a known prototype. This study therefore treats ArcFace and supervised contrastive training as representation-learning ablations. ArcFace is not presented as a confirmed proposed method; its apparent gains in selected internal or external conditions must be interpreted together with the multiseed and split-sensitivity evidence.
+
+\subsection{Topological Data Analysis of Learned Representations}
+
+Persistent homology summarizes connected components, loops, and higher-dimensional topological features across filtrations \cite{edelsbrunner2002persistence,carlsson2009topology}. The GUDHI library provides computational tools for cubical and simplicial persistent homology \cite{maria2014gudhi}. In image analysis, cubical filtrations can be applied to intensity maps, morphology-derived distance fields, or feature maps. For learned embeddings, Vietoris-Rips complexes can be constructed from pairwise distances in a point cloud.
+
+This paper separates two topological roles. Cubical persistent homology is evaluated as a potential predictive representation or open-set score. Vietoris-Rips topology is used only to characterize learned embedding clouds after the predictive experiments are frozen. The evidence supports a cautious conclusion: topology provides useful descriptive summaries and rigorous negative ablations, but the current artifacts do not support a claim that persistent topology predicts or causes open-set performance.

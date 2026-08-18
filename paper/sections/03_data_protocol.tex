@@ -1,0 +1,25 @@
+\section{Data and Open-Set Protocol}
+
+\subsection{Known and Unknown Taxonomies}
+
+Let $\mathcal{Y}_K$ denote the known training taxonomy. In this study,
+\[
+\mathcal{Y}_K=\{\text{basophil},\text{eosinophil},\text{lymphocyte},\text{monocyte},\text{neutrophil\_segmented}\}.
+\]
+All remaining evaluated morphologies are outside $\mathcal{Y}_K$ and are treated as unknown for open-set evaluation. This definition is protocol-specific. It does not imply that an unknown image is malignant, leukemic, cancerous, clinically abnormal, or diagnostically positive.
+
+\subsection{MLL23 Internal Dataset}
+
+MLL23 contains 41,621 images in the audited manifest used here, with 18 canonical classes, TIFF format, and 288 by 288 pixel images. The split contains 12,793 known-training images, 2,741 known-validation images, 2,742 known-test images, and 23,345 unknown-test images. The five known classes are used for model fitting and closed-set testing. The 13 unknown classes are held out from training and used only for open-set reporting and explanatory analysis.
+
+Two split protocols are evaluated. V1 is the original deterministic seed-37 split. V2 is a conservative near-duplicate-aware sensitivity split produced from checksum and perceptual-hash candidate audits. The near-duplicate audit identified high-confidence connected components and moved only two samples while preserving the split totals. Because the working manifests do not contain reliable patient identifiers, V2 is not described as patient-level validation. It is a conservative split-sensitivity audit against obvious or high-confidence near-duplicate leakage.
+
+\subsection{AML-LMU External Dataset}
+
+AML-Cytomorphology\_LMU is used as the independent external validation dataset. The audited manifest contains 18,365 TIFF images, all readable in the Delivery 7 quality-control artifact, with 400 by 400 RGB arrays after loading. The source collection documents expert-labeled single-cell peripheral blood smear images from 100 AML patients and 100 non-malignant controls. Patient identifiers are not available in the audited TCIA API fields or annotation file used by this project; subject counts are documented, but patient-level splitting is not part of this external test-only protocol.
+
+External mapping is frozen before model evaluation. BAS, EOS, LYT, MON, and NGS map exactly to the five known classes. EBO, KSC, LYA, MMZ, MOB, MYB, MYO, NGB, PMB, and PMO are external protocol unknowns. UNC and missing re-annotation labels are excluded by policy and have zero samples in the audited gold-standard column. Band neutrophils are not collapsed into segmented neutrophils, atypical lymphocytes are not collapsed into typical lymphocytes, and blast or immature labels are not mapped to mature leukocyte classes.
+
+AML-LMU is never used for training, checkpoint selection, fine-tuning, threshold selection, PCA fitting, ViM fitting, scorer selection, or taxonomy revision. Each frozen model is evaluated on AML-LMU as a test-only domain. This is a stricter external validation setting than one in which external data are used for adaptation.
+
+\input{tables/table1_datasets_protocol}

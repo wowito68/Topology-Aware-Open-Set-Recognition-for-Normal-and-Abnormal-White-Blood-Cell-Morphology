@@ -1,0 +1,27 @@
+\section{Discussion}
+
+\subsection{Closed-Set Accuracy Is Not Open-Set Reliability}
+
+The study shows a consistent gap between closed-set classification and open-set recognition. Internally, closed-set macro-F1 is near 0.97 across the principal CE and ArcFace models. Externally, accuracy remains high enough that a closed-set-only report might appear favorable. Yet macro-F1, AUROC, FPR@95TPR, and morphology-specific analyses show that the open-set task is much harder. A classifier can learn the known mature leukocyte taxonomy and still accept out-of-taxonomy morphologies that are close to known classes.
+
+\subsection{Morphological Similarity as a Persistent Failure Mode}
+
+The error structure is not random. Neutrophil-band is attracted toward segmented neutrophils, monoblast toward monocyte, and several lymphoid-like unknowns toward lymphocyte. These results are consistent with morphology-dependent recognition difficulty, not with a clinical diagnosis claim. The finding argues for per-morphology reporting in hematological open-set studies. Aggregate AUROC is necessary, but it is insufficient when the unknown set contains visually related classes with different failure modes.
+
+\subsection{Representation Compactness Does Not Guarantee Unknown Separation}
+
+ArcFace is an informative ablation because it improves some known-class geometry summaries while failing robust open-set confirmation. This separates two hypotheses that are often conflated: compact known classes can help classification, but compactness alone does not ensure that unseen related morphologies are pushed away. The V1 ArcFace trend is promising, but V2 reverses the AUROC direction for MSP and the seed-level evidence does not support a global superiority claim.
+
+\subsection{Acquisition-Domain Shift Dominates External Generalization}
+
+AML-LMU external validation is the strongest stress test in the paper. The external dataset differs from MLL23 in source, acquisition context, image dimensions, class composition, and source taxonomy. The observed degradation is therefore plausibly related to acquisition-domain and taxonomy-domain differences, but the study does not isolate each contributor causally. Possible contributors include staining, scanner, preprocessing, population, and class-definition differences. The evidence supports a domain-shift limitation, not a mechanistic attribution to any single factor.
+
+\subsection{What Persistent Homology Reveals and Does Not Reveal}
+
+Persistent homology plays two disciplined roles. Cubical PH is a negative predictive ablation: it was tested across multiple image-derived filtrations and did not provide robust complementary unknown-detection utility. Vietoris-Rips PH is a descriptive analysis of learned embedding clouds. It reveals measurable seed, split, and domain variation, but its associations with open-set metrics are weak and inconsistent. This prevents the paper from claiming that topology improves open-set hematology while still preserving the scientific value of the topological experiments.
+
+\subsection{Implications for Evaluation of Hematological AI Systems}
+
+The results argue for evaluation protocols that include unknown morphologies, multiple seeds, split-sensitivity analysis, external validation, and claim-level traceability. They also argue against presenting a single favorable run or a single aggregate metric as evidence of readiness. This repository is research software, not a clinical tool. The outputs studied here should be interpreted as morphology-recognition and unknown-rejection measurements on research datasets, not as patient-level diagnostic endpoints.
+
+\input{tables/table4_claim_evidence}
