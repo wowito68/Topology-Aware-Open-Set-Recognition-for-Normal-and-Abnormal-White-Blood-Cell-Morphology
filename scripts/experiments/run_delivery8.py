@@ -875,7 +875,7 @@ def write_main_tex() -> None:
 \usepackage{{xcolor}}
 
 \title{{{TITLE}}}
-\author{{Author information to be inserted}}
+\author{{G. Álvarez Sánchez}}
 \date{{}}
 
 \begin{{document}}
@@ -1249,7 +1249,7 @@ def write_supplement() -> None:
 \usepackage{longtable}
 \usepackage{hyperref}
 \title{Supplementary Material: Open-Set Recognition of Unseen Hematological Cell Morphologies under Domain Shift}
-\author{Author information to be inserted}
+\author{G. Álvarez Sánchez}
 \date{}
 \begin{document}
 \maketitle
