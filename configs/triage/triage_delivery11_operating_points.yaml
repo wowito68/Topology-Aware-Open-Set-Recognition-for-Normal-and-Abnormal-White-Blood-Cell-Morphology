@@ -1,0 +1,18 @@
+status: pending_remote_known_validation_calibration
+reason: EC2_HOST is not configured locally; authoritative calibration must run on EC2.
+known_test_used_for_threshold_calibration: false
+unknown_test_used_for_threshold_calibration: false
+coverage_targets:
+  - 0.95
+  - 0.90
+  - 0.80
+  - 0.70
+  - 0.60
+strategies:
+  - confidence_only
+  - confidence_margin
+  - confidence_margin_msp_qc
+remote_command: >-
+  .venv/bin/python scripts/experiments/run_delivery11.py calibrate-triage
+  --signals-csv artifacts/metrics/delivery11/oracle_validation_signals.csv
+  --output-yaml configs/triage/triage_delivery11_operating_points.yaml

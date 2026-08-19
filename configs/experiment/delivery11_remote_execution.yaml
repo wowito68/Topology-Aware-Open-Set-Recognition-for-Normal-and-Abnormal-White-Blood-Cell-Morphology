@@ -1,0 +1,38 @@
+delivery: 1.1
+execution_policy: remote_compute_thin_local_mirror
+starting_commit_observed: c7a1ea6
+expected_previous_delivery_commit: e85a50c
+remote_workspace:
+  preferred: /home/ubuntu/hemato-osr
+  alternative: /home/ubuntu/leukocyte-hil
+  actual: pending_ec2_connection
+blocked_until:
+  - EC2_HOST is provided
+  - remote workspace is inspected
+  - frozen CE checkpoint is recovered remotely
+  - CE checkpoint SHA256 matches exactly
+  - MLL23 is verified remotely
+strict_order:
+  - authoritative_remote_quality_gates
+  - recover_and_verify_ce_checkpoint
+  - reproduce_mll23_oracle_classifier
+  - calibrate_oracle_triage_known_validation_only
+  - freeze_oracle_operating_points
+  - evaluate_oracle_known_unknown_test
+  - audit_raabin_license
+  - download_and_materialize_raabin_on_ec2
+  - train_faster_rcnn_on_ec2
+  - evaluate_detected_crop_and_end_to_end_pipeline
+remote_scripts:
+  sync_to_ec2: scripts/remote/sync_to_ec2.sh
+  remote_gate: scripts/remote/remote_gate.sh
+  delivery11_remote: scripts/remote/run_delivery11_remote.sh
+  sync_from_ec2: scripts/remote/sync_from_ec2.sh
+forbidden_local_work:
+  - Raabin-WBC download
+  - archive extraction
+  - dataset-wide hashing
+  - classifier inference over MLL23
+  - detector training
+  - end-to-end inference
+  - crop generation at scale
