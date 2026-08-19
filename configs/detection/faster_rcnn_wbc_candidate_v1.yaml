@@ -1,0 +1,13 @@
+detector_id: faster_rcnn_wbc_candidate_v1
+task: LEUKOCYTE_CANDIDATE
+classes:
+  - leukocyte_candidate
+implementation: torchvision.models.detection.fasterrcnn_resnet50_fpn
+dependency_policy: use existing torchvision dependency
+seed: 37
+iou_threshold: 0.5
+selection_metric: validation_wbc_candidate_recall
+secondary_metric: mAP50
+notes:
+  - Single-class detection prevents the detector from suppressing morphology classes outside the known five-class taxonomy.
+  - Do not train until the full-smear dataset audit, split freeze, and leakage audit are complete.

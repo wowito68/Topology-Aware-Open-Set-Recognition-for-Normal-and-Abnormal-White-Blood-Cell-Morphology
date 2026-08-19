@@ -1,0 +1,117 @@
+{
+  "delivery": 1,
+  "audit_date": "2026-08-19",
+  "selected_primary_dataset": "Raabin-WBC",
+  "selection_status": "selected_for_protocol_pending_local_archive_verification",
+  "selection_rationale": [
+    "Official Scientific Reports article describes large blood-film images with coordinates and labels for cells.",
+    "Official source states free access to more than 40000 normal WBC images.",
+    "The dataset explicitly supports detection, localization, classification, and segmentation research tasks.",
+    "Raabin-WBC is more directly aligned with leukocyte candidate localization than derivative mixed-cell detection datasets."
+  ],
+  "candidates": [
+    {
+      "dataset": "Raabin-WBC",
+      "version": "Scientific Reports 2022 release; exact downloadable archive version not locally verified",
+      "official_source": [
+        "https://raabindata.com/",
+        "https://doi.org/10.1038/s41598-021-04426-x"
+      ],
+      "license": "Article is CC BY 4.0. Official Raabin page states free access for commercial and non-commercial projects. Dataset archive license must be rechecked after download before redistribution.",
+      "number_of_images": "about 23000 blood-film images before cell extraction; official page also describes more than 40000 WBC images",
+      "number_of_annotated_leukocytes": "not stated as leukocyte-only in audited pages; article reports about 43000 blood elements obtained after extraction",
+      "image_resolutions": "not fully audited; article describes 512x512 square crops around cell centers and large non-cropped images",
+      "annotation_format": "JSON dictionaries per microscopic image according to article",
+      "bounding_boxes_available": true,
+      "segmentation_masks_available": "available for 1145 selected cells: nuclei and cytoplasm ground truths",
+      "cell_classes": [
+        "neutrophil",
+        "eosinophil",
+        "basophil",
+        "lymphocyte",
+        "monocyte",
+        "band",
+        "metamyelocyte",
+        "burst/smudge-like remnants",
+        "artifact/color spots"
+      ],
+      "patient_or_sample_ids": "not confirmed in audited documentation",
+      "staining": "peripheral blood films; exact stain field not confirmed in audited lines",
+      "acquisition_devices": "Olympus CX18 and Zeiss microscopes at 100x; smartphone cameras documented in article",
+      "single_cell_vs_full_field_image_status": "full/large blood-film images with coordinates and labels are described; cropped cells also exist",
+      "decision": "primary_detection_dataset"
+    },
+    {
+      "dataset": "TXL-PBC",
+      "version": "Scientific Data 2025 / GitHub release",
+      "official_source": [
+        "https://github.com/lugan113/TXL-PBC_Dataset",
+        "https://doi.org/10.1038/s41597-025-05980-z"
+      ],
+      "license": "MIT according to GitHub README",
+      "number_of_images": "1260",
+      "number_of_annotated_leukocytes": "not separately stated in audited README; 18143 boxes for WBC, RBC, and platelets combined",
+      "image_resolutions": "not audited",
+      "annotation_format": "YOLO format",
+      "bounding_boxes_available": true,
+      "segmentation_masks_available": false,
+      "cell_classes": [
+        "WBC",
+        "RBC",
+        "platelets"
+      ],
+      "patient_or_sample_ids": "metadata file described; patient/sample IDs not confirmed",
+      "staining": "not audited",
+      "acquisition_devices": "not audited",
+      "single_cell_vs_full_field_image_status": "peripheral blood cell detection images aggregated from public sources",
+      "decision": "secondary_candidate_only"
+    },
+    {
+      "dataset": "White-Blood-Cell-Detection-Dataset",
+      "version": "GitHub repository, exact release not versioned in audited README",
+      "official_source": [
+        "https://github.com/medmabcf/White-Blood-Cell-Detection-Dataset"
+      ],
+      "license": "CC BY 4.0 according to GitHub README",
+      "number_of_images": "not audited",
+      "number_of_annotated_leukocytes": "not audited",
+      "image_resolutions": "not audited",
+      "annotation_format": "bounding boxes described; exact format not audited",
+      "bounding_boxes_available": true,
+      "segmentation_masks_available": false,
+      "cell_classes": [
+        "Basophil",
+        "Eosinophil",
+        "Erythroblast",
+        "Immunoglobulin/Ig",
+        "Lymphocyte",
+        "Monocyte",
+        "Neutrophil"
+      ],
+      "patient_or_sample_ids": "not audited",
+      "staining": "derived from PBC_dataset_normal_DIB; details not audited",
+      "acquisition_devices": "not audited",
+      "single_cell_vs_full_field_image_status": "derived WBC detection dataset; full-field status not verified",
+      "decision": "not_primary_due_to_less_complete_official_metadata"
+    }
+  ],
+  "sources_consulted": [
+    {
+      "url": "https://www.nature.com/articles/s41598-021-04426-x",
+      "used_for": "Raabin-WBC title, publication, cell locations/types, segmentation availability, full-image JSON coordinates, imaging devices, approximate image and element counts, CC BY 4.0 article license"
+    },
+    {
+      "url": "https://raabindata.com/",
+      "used_for": "official Raabin dataset access page and free-access statement"
+    },
+    {
+      "url": "https://github.com/lugan113/TXL-PBC_Dataset",
+      "used_for": "TXL-PBC image count, annotation count, YOLO format, split, MIT license"
+    },
+    {
+      "url": "https://github.com/medmabcf/White-Blood-Cell-Detection-Dataset",
+      "used_for": "secondary WBC detection dataset description and license"
+    }
+  ],
+  "metadata_not_invented": true
+}

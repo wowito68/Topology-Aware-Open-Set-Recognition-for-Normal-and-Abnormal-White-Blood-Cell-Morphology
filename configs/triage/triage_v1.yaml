@@ -1,0 +1,31 @@
+triage_id: triage_v1_precalibration
+status: thresholds_pending_allowed_validation_calibration
+primary_statuses:
+  - AUTO_ACCEPT
+  - HUMAN_REVIEW
+  - POSSIBLE_UNKNOWN
+  - LOW_QUALITY
+  - INVALID_DETECTION
+priority_order:
+  - INVALID_DETECTION
+  - LOW_QUALITY
+  - POSSIBLE_UNKNOWN
+  - HUMAN_REVIEW_low_confidence
+  - HUMAN_REVIEW_low_margin
+  - AUTO_ACCEPT
+thresholds:
+  confidence: null
+  margin: null
+  unknown_score: null
+  min_quality_score: 0.75
+quality_thresholds:
+  min_crop_width: 32
+  min_crop_height: 32
+  blur_variance_threshold: 12.0
+  underexposed_mean_threshold: 20.0
+  overexposed_mean_threshold: 235.0
+  saturation_fraction_threshold: 0.20
+calibration_dataset: known_validation_only
+selection_objective: risk_coverage_curve_over_90_80_70_percent_known_validation_coverage
+final_test_used_for_threshold_tuning: false
+config_hash: pending_after_threshold_calibration

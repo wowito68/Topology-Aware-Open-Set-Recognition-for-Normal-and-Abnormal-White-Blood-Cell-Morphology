@@ -1,0 +1,74 @@
+{
+  "delivery": 1,
+  "title": "Human-in-the-loop open-set leukocyte morphology analysis from full-smear images",
+  "status": "predeclared_before_detector_training",
+  "research_scope": {
+    "research_prototype": true,
+    "diagnostic_system": false,
+    "clinical_deployment": false,
+    "unknown_meaning": "morphology outside the known training taxonomy"
+  },
+  "dataset": {
+    "primary_detection_dataset": "Raabin-WBC",
+    "version": "Scientific Reports 2022 dataset release; exact archive version to be recorded after download",
+    "official_source": "https://raabindata.com/ and https://doi.org/10.1038/s41598-021-04426-x",
+    "local_data_status": "not downloaded in this repository",
+    "manifest_path": "data/manifests/delivery1_detection_manifest.csv"
+  },
+  "split": {
+    "strategy": "sample_or_image_level_split_pending_archive_metadata",
+    "train_fraction": 0.7,
+    "validation_fraction": 0.15,
+    "test_fraction": 0.15,
+    "patient_or_sample_grouping": "use official patient/sample identifiers if provided; otherwise document unavailable identifiers and avoid inventing them",
+    "seed": 37,
+    "test_use_for_model_selection": false
+  },
+  "detector": {
+    "task": "LEUKOCYTE_CANDIDATE",
+    "class_count": 1,
+    "selected_family": "torchvision Faster R-CNN",
+    "rationale": "minimal new dependency burden, official torchvision implementation already compatible with project dependencies, straightforward bounding-box inference, and no requirement to benchmark multiple detector families in Delivery 1",
+    "initialization": "COCO-pretrained backbone if weights are available in the execution environment; otherwise ImageNet-pretrained backbone documented before training",
+    "input_size": "short-side resize policy to be frozen from dataset loader smoke results; no test-set tuning",
+    "batch_size": "pending GPU memory gate",
+    "optimizer": "SGD with momentum",
+    "learning_rate": 0.005,
+    "epochs": 30,
+    "augmentation": [
+      "horizontal flip only if compatible with annotation transforms",
+      "conservative color jitter only after smoke validation"
+    ],
+    "selection_metric": "validation WBC candidate recall with mAP50 as secondary tie-breaker",
+    "seed": 37,
+    "iou_threshold": 0.5,
+    "evaluation_metrics": [
+      "mAP50",
+      "mAP50:95",
+      "precision",
+      "recall",
+      "WBC candidate recall"
+    ]
+  },
+  "crop_extraction": {
+    "context_margin_fraction": 0.15,
+    "clip_to_image_bounds": true,
+    "record_crop_checksum": true,
+    "classifier_preprocessing": "RGB, 224x224, ImageNet normalization"
+  },
+  "morphology": {
+    "primary_classifier": "Delivery 6 CE representation seed 37 v2",
+    "primary_open_set_score": "MSP unknown score = 1 - max softmax probability",
+    "vim_secondary_only": true,
+    "arcface_retraining": false
+  },
+  "calibration": {
+    "threshold_source": "known validation data only, plus predeclared development uncertainty set only if available before final evaluation",
+    "final_test_used_for_threshold_tuning": false,
+    "operating_points": [
+      "90% known-validation coverage",
+      "80% known-validation coverage",
+      "70% known-validation coverage"
+    ]
+  }
+}

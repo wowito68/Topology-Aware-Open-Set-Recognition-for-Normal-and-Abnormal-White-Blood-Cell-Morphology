@@ -1,0 +1,37 @@
+classifier_id: delivery6_ce_seed37_v2
+source_project: Topology-Aware Open-Set Recognition for Normal and Abnormal White Blood Cell Morphology
+source_repository_commit: fdfe72c
+representation: ce
+selection_rule: historical seed 37 baseline from Delivery 6 v2, not peak cherry-picked seed
+checkpoint_path: artifacts/checkpoints/delivery6/d6_v2_ce_seed37_2d9d5aa0027e6f49/best_checkpoint.pt
+checkpoint_sha256: a1ff5939b431805a70eb5bda1e4e09059ff8e3fc0521fad2d41884b7c415deca
+local_checkpoint_status: missing_from_git_large_artifact_expected
+training_split: data/manifests/mll23_seed37_v2_conservative.csv
+manifest_sha256: 81ca3db900f788a0446f80ea5d36e8766d8ca050404b755111b3ca898f809026
+seed: 37
+known_classes:
+  - basophil
+  - eosinophil
+  - lymphocyte
+  - monocyte
+  - neutrophil_segmented
+preprocessing:
+  color_mode: RGB
+  image_size: 224
+  normalization_mean:
+    - 0.485
+    - 0.456
+    - 0.406
+  normalization_std:
+    - 0.229
+    - 0.224
+    - 0.225
+embedding_dimension: null
+closed_set_metrics: pending_reproduction_with_local_checkpoint
+primary_unknown_score: msp
+msp_orientation: larger_means_more_unknown_like
+known_limitations:
+  - MSP can miss high-confidence attraction cases.
+  - neutrophil_band may be attracted toward neutrophil_segmented.
+  - lymphoid-like unknown morphologies may be attracted toward lymphocyte.
+  - Full-smear detector crops may introduce crop-domain shift relative to centered MLL23 crops.
