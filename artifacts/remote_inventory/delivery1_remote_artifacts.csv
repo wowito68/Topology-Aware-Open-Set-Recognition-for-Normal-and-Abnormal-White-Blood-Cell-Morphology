@@ -1,0 +1,7 @@
+artifact_id,artifact_type,remote_path,local_copy,size_bytes,sha256_if_applicable,required_for_reproduction,regenerate_command,notes
+raabin_raw,dataset,/home/ubuntu/datasets/raabin_wbc/,none,pending,pending,yes,pending_remote_download,"Download directly on EC2 only."
+ce_checkpoint,checkpoint,/home/ubuntu/hemato-osr/artifacts/checkpoints/delivery6/d6_v2_ce_seed37_2d9d5aa0027e6f49/best_checkpoint.pt,metadata_only,pending,a1ff5939b431805a70eb5bda1e4e09059ff8e3fc0521fad2d41884b7c415deca,yes,pending_remote_verification,"Do not copy locally."
+detector_checkpoint,checkpoint,/home/ubuntu/hemato-osr/artifacts/checkpoints/delivery1/faster_rcnn_wbc_candidate_v1/best_checkpoint.pt,metadata_only,pending,pending,yes,pending_remote_training,"Created only after protocol/data freeze and smoke test."
+detector_predictions,predictions,/home/ubuntu/hemato-osr/artifacts/predictions/delivery1/detections.jsonl,summary_only,pending,pending,yes,pending_remote_inference,"Large JSONL may remain remote."
+crop_cache,crops,/home/ubuntu/hemato-osr/artifacts/crops/delivery1/,none,pending,pending,no,pending_remote_inference,"Generated crops stay remote."
+end_to_end_metrics,metrics,/home/ubuntu/hemato-osr/artifacts/metrics/delivery1/,artifacts/metrics/delivery1/,pending,pending,yes,pending_remote_evaluation,"Copy compact CSV/JSON metrics back locally."
