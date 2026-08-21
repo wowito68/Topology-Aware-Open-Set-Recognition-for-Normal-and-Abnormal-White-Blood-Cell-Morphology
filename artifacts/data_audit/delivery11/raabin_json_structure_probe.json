@@ -1,0 +1,95 @@
+{
+  "first": {
+    "archive": "first_95-9-1-3.zip",
+    "json_count": 28,
+    "image_count": 28,
+    "sample_json": "jsons/20161121_183802.json",
+    "matching_image": "images/20161121_183802.jpg",
+    "matching_image_size_wh": [
+      5312,
+      2988
+    ],
+    "json_top_keys": [
+      "Cell_0",
+      "Cell_1",
+      "Cell_2",
+      "Zoom",
+      "Stain Method",
+      "Film Label",
+      "Camera",
+      "Microscop",
+      "Film ID",
+      "Cell Numbers"
+    ],
+    "imagePath": null,
+    "imageHeight": null,
+    "imageWidth": null,
+    "shape_count": null,
+    "shape_samples": null
+  },
+  "second": {
+    "archive": "second_sentremained1.zip",
+    "json_count": 132,
+    "image_count": 132,
+    "sample_json": "jsons/20181213_123217.json",
+    "matching_image": "images/20181213_123217.jpg",
+    "matching_image_size_wh": [
+      4160,
+      3120
+    ],
+    "json_top_keys": [
+      "Cell_0",
+      "Zoom",
+      "Stain Method",
+      "Film Label",
+      "Camera",
+      "Microscop",
+      "Film ID",
+      "Cell Numbers",
+      "Cell_1"
+    ],
+    "imagePath": null,
+    "imageHeight": null,
+    "imageWidth": null,
+    "shape_count": null,
+    "shape_samples": null
+  },
+  "first_microscope_example.json": {
+    "json_top_keys": [
+      "Cell_0",
+      "Cell_1",
+      "Cell_2",
+      "Cell_3",
+      "Cell_4",
+      "Zoom",
+      "Stain Method",
+      "Film Label",
+      "Camera",
+      "Microscop",
+      "Film ID",
+      "Cell Numbers"
+    ],
+    "shape_count": 0,
+    "shape_samples": [],
+    "imageHeight": null,
+    "imageWidth": null
+  },
+  "second_microscope_example.json": {
+    "json_top_keys": [
+      "Cell_0",
+      "Zoom",
+      "Stain Method",
+      "Film Label",
+      "Camera",
+      "Microscop",
+      "Film ID",
+      "Cell Numbers",
+      "Cell_1",
+      "Cell_2"
+    ],
+    "shape_count": 0,
+    "shape_samples": [],
+    "imageHeight": null,
+    "imageWidth": null
+  }
+}

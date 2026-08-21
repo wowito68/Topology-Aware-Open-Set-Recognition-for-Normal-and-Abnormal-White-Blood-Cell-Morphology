@@ -9,7 +9,13 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
+import subprocess
+import tempfile
+import zipfile
+from collections import Counter, defaultdict
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -18,7 +24,7 @@ import torch
 from PIL import Image
 from scipy.special import softmax
 from sklearn.metrics import average_precision_score
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 from hemato_osr.data.dataset import ManifestImageDataset, collate_samples
 from hemato_osr.data.taxonomy import DEFAULT_KNOWN_CLASSES
@@ -90,6 +96,76 @@ def main() -> None:
     oracle_parser.add_argument("--num-workers", default=4, type=int)
     oracle_parser.add_argument("--device", default="auto")
 
+    materialize_parser = subparsers.add_parser("materialize-raabin-fullfield")
+    materialize_parser.add_argument(
+        "--archive",
+        default="/opt/dlami/nvme/datasets/raabin_wbc/raw/WBCData.rar",
+        type=Path,
+    )
+    materialize_parser.add_argument(
+        "--output-root",
+        default="/opt/dlami/nvme/datasets/raabin_wbc/fullfield",
+        type=Path,
+    )
+    materialize_parser.add_argument(
+        "--summary-json",
+        default="artifacts/data_audit/delivery11/raabin_fullfield_materialization.json",
+        type=Path,
+    )
+
+    manifest_parser = subparsers.add_parser("build-raabin-detection-manifest")
+    manifest_parser.add_argument(
+        "--materialized-root",
+        default="/opt/dlami/nvme/datasets/raabin_wbc/fullfield",
+        type=Path,
+    )
+    manifest_parser.add_argument(
+        "--output-csv",
+        default="data/manifests/delivery11_raabin_detection.csv",
+        type=Path,
+    )
+    manifest_parser.add_argument(
+        "--audit-json",
+        default="artifacts/data_audit/delivery11/raabin_detection_manifest_audit.json",
+        type=Path,
+    )
+    manifest_parser.add_argument("--seed", default=37, type=int)
+
+    duplicate_parser = subparsers.add_parser("audit-raabin-duplicates")
+    duplicate_parser.add_argument(
+        "--manifest",
+        default="data/manifests/delivery11_raabin_detection.csv",
+        type=Path,
+    )
+    duplicate_parser.add_argument(
+        "--output-json",
+        default="artifacts/data_audit/delivery11/raabin_duplicate_audit.json",
+        type=Path,
+    )
+    duplicate_parser.add_argument(
+        "--output-csv",
+        default="artifacts/data_audit/delivery11/raabin_duplicate_audit.csv",
+        type=Path,
+    )
+
+    train_detector_parser = subparsers.add_parser("train-raabin-detector")
+    train_detector_parser.add_argument(
+        "--manifest",
+        default="data/manifests/delivery11_raabin_detection.csv",
+        type=Path,
+    )
+    train_detector_parser.add_argument(
+        "--output-dir",
+        default="artifacts/checkpoints/delivery11/faster_rcnn_wbc_candidate_v1",
+        type=Path,
+    )
+    train_detector_parser.add_argument("--epochs", default=30, type=int)
+    train_detector_parser.add_argument("--batch-size", default=2, type=int)
+    train_detector_parser.add_argument("--num-workers", default=4, type=int)
+    train_detector_parser.add_argument("--device", default="auto")
+    train_detector_parser.add_argument("--seed", default=37, type=int)
+    train_detector_parser.add_argument("--smoke-limit", default=0, type=int)
+
     args = parser.parse_args()
     if args.command == "verify-checkpoint":
         _verify_checkpoint(args.checkpoint, args.expected_sha256, args.output_json)
@@ -105,6 +181,28 @@ def main() -> None:
             batch_size=args.batch_size,
             num_workers=args.num_workers,
             device_name=args.device,
+        )
+    elif args.command == "materialize-raabin-fullfield":
+        _materialize_raabin_fullfield(args.archive, args.output_root, args.summary_json)
+    elif args.command == "build-raabin-detection-manifest":
+        _build_raabin_detection_manifest(
+            materialized_root=args.materialized_root,
+            output_csv=args.output_csv,
+            audit_json=args.audit_json,
+            seed=args.seed,
+        )
+    elif args.command == "audit-raabin-duplicates":
+        _audit_raabin_duplicates(args.manifest, args.output_json, args.output_csv)
+    elif args.command == "train-raabin-detector":
+        _train_raabin_detector(
+            manifest=args.manifest,
+            output_dir=args.output_dir,
+            epochs=args.epochs,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            device_name=args.device,
+            seed=args.seed,
+            smoke_limit=args.smoke_limit,
         )
 
 
@@ -557,6 +655,690 @@ def _rate(numerator: int, denominator: int) -> float:
     if denominator == 0:
         return float("nan")
     return float(numerator / denominator)
+
+
+def _materialize_raabin_fullfield(archive: Path, output_root: Path, summary_json: Path) -> None:
+    """Extract only Raabin full-field image/json ZIP payloads from the outer RAR."""
+
+    if not archive.exists():
+        raise SystemExit(f"Raabin archive missing: {archive}")
+    output_root.mkdir(parents=True, exist_ok=True)
+    listing = subprocess.check_output(["unrar", "lb", str(archive)], text=True)
+    inner_archives = [
+        line.strip()
+        for line in listing.splitlines()
+        if (
+            line.strip().endswith(".zip")
+            and (
+                "/Index of WBC First_microscope/" in line
+                or "/Index of WBC Second_microscope/" in line
+            )
+        )
+    ]
+    if not inner_archives:
+        raise SystemExit("RAABIN FULL-FIELD MATERIALIZATION BLOCKED: no microscope ZIPs found")
+
+    materialized: list[dict[str, object]] = []
+    with tempfile.TemporaryDirectory(prefix="raabin-inner-") as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        for inner in inner_archives:
+            source = (
+                "first_microscope"
+                if "/Index of WBC First_microscope/" in inner
+                else "second_microscope"
+            )
+            film_id = Path(inner).stem
+            target_dir = output_root / source / film_id
+            done_marker = target_dir / ".delivery11_extracted"
+            if done_marker.exists():
+                counts = _count_materialized_pairs(target_dir)
+                materialized.append(
+                    {
+                        "inner_archive": inner,
+                        "source": source,
+                        "film_id": film_id,
+                        "target_dir": str(target_dir),
+                        "skipped_existing": True,
+                        **counts,
+                    }
+                )
+                continue
+
+            target_dir.mkdir(parents=True, exist_ok=True)
+            temp_zip = tmp_path / f"{source}_{film_id}.zip"
+            with temp_zip.open("wb") as handle:
+                subprocess.run(
+                    ["unrar", "p", "-inul", str(archive), inner],
+                    stdout=handle,
+                    check=True,
+                )
+            _safe_extract_zip(temp_zip, target_dir)
+            temp_zip.unlink(missing_ok=True)
+            done_marker.write_text("delivery11 materialized\n")
+            counts = _count_materialized_pairs(target_dir)
+            materialized.append(
+                {
+                    "inner_archive": inner,
+                    "source": source,
+                    "film_id": film_id,
+                    "target_dir": str(target_dir),
+                    "skipped_existing": False,
+                    **counts,
+                }
+            )
+
+    summary = {
+        "archive": str(archive),
+        "output_root": str(output_root),
+        "inner_archive_count": len(inner_archives),
+        "materialized": materialized,
+        "total_images": sum(int(str(row["image_count"])) for row in materialized),
+        "total_jsons": sum(int(str(row["json_count"])) for row in materialized),
+    }
+    summary_json.parent.mkdir(parents=True, exist_ok=True)
+    summary_json.write_text(json.dumps(summary, indent=2) + "\n")
+
+
+def _safe_extract_zip(zip_path: Path, output_dir: Path) -> None:
+    with zipfile.ZipFile(zip_path) as archive:
+        for member in archive.infolist():
+            member_path = Path(member.filename)
+            if member_path.is_absolute() or ".." in member_path.parts:
+                raise SystemExit(f"Unsafe ZIP member path: {member.filename}")
+            archive.extract(member, output_dir)
+
+
+def _count_materialized_pairs(root: Path) -> dict[str, int]:
+    return {
+        "image_count": sum(
+            1 for path in root.rglob("*") if path.suffix.lower() in {".jpg", ".jpeg", ".png"}
+        ),
+        "json_count": sum(1 for path in root.rglob("*.json")),
+    }
+
+
+def _build_raabin_detection_manifest(
+    *,
+    materialized_root: Path,
+    output_csv: Path,
+    audit_json: Path,
+    seed: int,
+) -> None:
+    rows: list[dict[str, object]] = []
+    label_counts: Counter[str] = Counter()
+    excluded_counts: Counter[str] = Counter()
+    invalid_boxes: list[dict[str, object]] = []
+    image_groups: dict[str, str] = {}
+
+    for json_path in sorted(materialized_root.rglob("jsons/*.json")):
+        archive_root = json_path.parents[1]
+        image_path = archive_root / "images" / f"{json_path.stem}.jpg"
+        if not image_path.exists():
+            continue
+        with Image.open(image_path) as image:
+            width, height = image.size
+        payload = json.loads(json_path.read_text(errors="replace"))
+        source = archive_root.parent.name
+        film_id = str(payload.get("Film ID") or archive_root.name)
+        image_id = f"{source}/{film_id}/{json_path.stem}"
+        image_groups[image_id] = film_id
+        for key, value in sorted(payload.items()):
+            if not key.startswith("Cell_") or not isinstance(value, dict):
+                continue
+            label = str(value.get("Label1") or value.get("Label2") or "").strip()
+            label_counts[label] += 1
+            bbox = _raabin_cell_bbox(value)
+            if bbox is None:
+                invalid_boxes.append({"image_id": image_id, "cell_key": key, "label": label})
+                continue
+            clipped = _clip_xyxy(bbox, width, height)
+            if clipped is None:
+                invalid_boxes.append({"image_id": image_id, "cell_key": key, "label": label})
+                continue
+            mapped, known_status, detector_eligible, exclusion_reason = _map_raabin_label(label)
+            if not detector_eligible:
+                excluded_counts[exclusion_reason] += 1
+            rows.append(
+                {
+                    "image_id": image_id,
+                    "image_path": str(image_path),
+                    "json_path": str(json_path),
+                    "source": source,
+                    "film_id": film_id,
+                    "width": width,
+                    "height": height,
+                    "gt_cell_id": f"{image_id}/{key}",
+                    "cell_key": key,
+                    "raw_label1": label,
+                    "raw_label2": str(value.get("Label2") or "").strip(),
+                    "mapped_morphology": mapped,
+                    "known_or_unknown": known_status,
+                    "detector_eligible": detector_eligible,
+                    "exclusion_reason": exclusion_reason,
+                    "x_min": clipped[0],
+                    "y_min": clipped[1],
+                    "x_max": clipped[2],
+                    "y_max": clipped[3],
+                }
+            )
+
+    if not rows:
+        raise SystemExit("RAABIN FULL-FIELD DETECTION GATE: FAIL")
+
+    split_by_film = _deterministic_group_splits(sorted(set(image_groups.values())), seed=seed)
+    for row in rows:
+        row["split"] = split_by_film[str(row["film_id"])]
+
+    output_csv.parent.mkdir(parents=True, exist_ok=True)
+    frame = pd.DataFrame(rows)
+    frame.to_csv(output_csv, index=False)
+
+    eligible = frame.loc[frame["detector_eligible"].astype(bool)].copy()
+    image_split_counts = (
+        eligible.drop_duplicates("image_id").groupby("split")["image_id"].count().to_dict()
+    )
+    box_split_counts = eligible.groupby("split")["gt_cell_id"].count().to_dict()
+    audit = {
+        "materialized_root": str(materialized_root),
+        "output_csv": str(output_csv),
+        "seed": seed,
+        "row_count_all_annotations": int(len(frame)),
+        "row_count_detector_eligible": int(len(eligible)),
+        "image_count_detector_eligible": int(eligible["image_id"].nunique()),
+        "film_id_count": int(frame["film_id"].nunique()),
+        "split_unit": "film_id",
+        "split_limitation": (
+            "Raabin patient identifiers were not established; Film ID is used as the "
+            "deterministic grouping unit."
+        ),
+        "image_split_counts": {str(k): int(v) for k, v in image_split_counts.items()},
+        "box_split_counts": {str(k): int(v) for k, v in box_split_counts.items()},
+        "raw_label_counts": dict(label_counts.most_common()),
+        "excluded_counts": dict(excluded_counts.most_common()),
+        "mapped_morphology_counts": eligible["mapped_morphology"].value_counts().to_dict(),
+        "known_unknown_counts": eligible["known_or_unknown"].value_counts().to_dict(),
+        "invalid_box_count": len(invalid_boxes),
+        "invalid_box_samples": invalid_boxes[:25],
+        "known_taxonomy": list(DEFAULT_KNOWN_CLASSES),
+        "detector_class": "LEUKOCYTE_CANDIDATE",
+    }
+    audit_json.parent.mkdir(parents=True, exist_ok=True)
+    audit_json.write_text(json.dumps(audit, indent=2) + "\n")
+
+
+def _raabin_cell_bbox(cell: dict[str, object]) -> tuple[float, float, float, float] | None:
+    try:
+        return (
+            float(str(cell["x1"])),
+            float(str(cell["y1"])),
+            float(str(cell["x2"])),
+            float(str(cell["y2"])),
+        )
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def _clip_xyxy(
+    bbox: tuple[float, float, float, float],
+    width: int,
+    height: int,
+) -> tuple[float, float, float, float] | None:
+    x1, y1, x2, y2 = bbox
+    clipped = BoundingBox(
+        x_min=min(max(0.0, x1), float(width)),
+        y_min=min(max(0.0, y1), float(height)),
+        x_max=min(max(0.0, x2), float(width)),
+        y_max=min(max(0.0, y2), float(height)),
+    )
+    if not clipped.is_valid:
+        return None
+    return (clipped.x_min, clipped.y_min, clipped.x_max, clipped.y_max)
+
+
+def _map_raabin_label(label: str) -> tuple[str, str, bool, str]:
+    normalized = label.strip().lower().replace("_", " ").replace("-", " ")
+    normalized = " ".join(normalized.split())
+    if normalized in {"artifact", "artefact", "burst", ""}:
+        return "", "excluded", False, normalized or "empty_label"
+    if normalized == "basophil":
+        return "basophil", "known", True, ""
+    if normalized == "eosinophil":
+        return "eosinophil", "known", True, ""
+    if normalized in {"small lymph", "lymphocyte", "lymph"}:
+        return "lymphocyte", "known", True, ""
+    if normalized == "monocyte":
+        return "monocyte", "known", True, ""
+    if normalized == "neutrophil":
+        return "neutrophil_segmented", "known", True, ""
+    return "unknown", "unknown", True, ""
+
+
+def _deterministic_group_splits(groups: list[str], *, seed: int) -> dict[str, str]:
+    keyed = sorted(
+        (hashlib.sha256(f"{seed}:{group}".encode()).hexdigest(), group) for group in groups
+    )
+    n = len(keyed)
+    train_end = int(round(0.70 * n))
+    val_end = train_end + int(round(0.15 * n))
+    split_by_group: dict[str, str] = {}
+    for idx, (_, group) in enumerate(keyed):
+        if idx < train_end:
+            split = "train"
+        elif idx < val_end:
+            split = "validation"
+        else:
+            split = "test"
+        split_by_group[group] = split
+    return split_by_group
+
+
+def _audit_raabin_duplicates(manifest: Path, output_json: Path, output_csv: Path) -> None:
+    frame = pd.read_csv(manifest)
+    images = (
+        frame.loc[frame["detector_eligible"].astype(bool), ["image_id", "image_path", "split"]]
+        .drop_duplicates("image_id")
+        .sort_values("image_id")
+    )
+    rows: list[dict[str, object]] = []
+    for row in images.itertuples(index=False):
+        path = Path(str(row.image_path))
+        sha = _file_sha256(path)
+        ahash = _average_hash(path)
+        rows.append(
+            {
+                "image_id": str(row.image_id),
+                "image_path": str(path),
+                "split": str(row.split),
+                "sha256": sha,
+                "average_hash": ahash,
+            }
+        )
+
+    audit_frame = pd.DataFrame(rows)
+    output_csv.parent.mkdir(parents=True, exist_ok=True)
+    audit_frame.to_csv(output_csv, index=False)
+
+    exact_cross_split = _cross_split_duplicates(audit_frame, "sha256")
+    phash_candidates = _average_hash_candidates(audit_frame, max_hamming=4)
+    summary = {
+        "manifest": str(manifest),
+        "image_count": int(len(audit_frame)),
+        "exact_cross_split_duplicate_count": len(exact_cross_split),
+        "exact_cross_split_duplicates": exact_cross_split[:25],
+        "average_hash_candidate_count_hamming_le_4": len(phash_candidates),
+        "average_hash_candidates_hamming_le_4": phash_candidates[:50],
+        "verdict": "PASS" if not exact_cross_split else "FAIL_EXACT_CROSS_SPLIT_DUPLICATES",
+    }
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    output_json.write_text(json.dumps(summary, indent=2) + "\n")
+    if exact_cross_split:
+        raise SystemExit("RAABIN DUPLICATE AUDIT FAIL: exact cross-split duplicate")
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _average_hash(path: Path) -> str:
+    with Image.open(path) as image:
+        image.draft("L", (64, 64))
+        gray = image.convert("L")
+        gray.thumbnail((8, 8), Image.Resampling.BILINEAR)
+        if gray.size != (8, 8):
+            gray = gray.resize((8, 8), Image.Resampling.BILINEAR)
+    arr = np.asarray(gray, dtype=np.float32)
+    bits = arr >= float(arr.mean())
+    value = 0
+    for bit in bits.reshape(-1):
+        value = (value << 1) | int(bit)
+    return f"{value:016x}"
+
+
+def _cross_split_duplicates(frame: pd.DataFrame, column: str) -> list[dict[str, object]]:
+    duplicates: list[dict[str, object]] = []
+    for value, group in frame.groupby(column):
+        splits = sorted(set(str(item) for item in group["split"]))
+        if len(splits) <= 1:
+            continue
+        duplicates.append(
+            {
+                column: str(value),
+                "splits": splits,
+                "image_ids": group["image_id"].astype(str).head(10).tolist(),
+            }
+        )
+    return duplicates
+
+
+def _average_hash_candidates(frame: pd.DataFrame, *, max_hamming: int) -> list[dict[str, object]]:
+    split_hashes: dict[str, dict[int, list[str]]] = {}
+    for split, group in frame.groupby("split"):
+        hashes: dict[int, list[str]] = defaultdict(list)
+        for row in group[["image_id", "average_hash"]].itertuples(index=False):
+            hashes[int(str(row.average_hash), 16)].append(str(row.image_id))
+        split_hashes[str(split)] = hashes
+
+    candidates: list[dict[str, object]] = []
+    split_pairs = [("train", "validation"), ("train", "test"), ("validation", "test")]
+    for left_split, right_split in split_pairs:
+        left_hashes = split_hashes.get(left_split, {})
+        right_hashes = split_hashes.get(right_split, {})
+        tree = _BKTree(list(right_hashes))
+        for left_hash, left_ids in left_hashes.items():
+            for right_hash, distance in tree.query(left_hash, max_hamming):
+                right_ids = right_hashes[right_hash]
+                for left_id in left_ids[:3]:
+                    for right_id in right_ids[:3]:
+                        candidates.append(
+                            {
+                                "left_split": left_split,
+                                "left_image_id": left_id,
+                                "right_split": right_split,
+                                "right_image_id": right_id,
+                                "hamming": distance,
+                            }
+                        )
+                        if len(candidates) >= 10000:
+                            return candidates
+    return candidates
+
+
+class _BKTree:
+    def __init__(self, values: list[int]) -> None:
+        self.root: _BKNode | None = None
+        for value in values:
+            self.add(value)
+
+    def add(self, value: int) -> None:
+        if self.root is None:
+            self.root = _BKNode(value=value)
+            return
+        node = self.root
+        while True:
+            distance = _hamming64(value, node.value)
+            child = node.children.get(distance)
+            if child is None:
+                node.children[distance] = _BKNode(value=value)
+                return
+            node = child
+
+    def query(self, value: int, max_distance: int) -> list[tuple[int, int]]:
+        if self.root is None:
+            return []
+        matches: list[tuple[int, int]] = []
+        stack = [self.root]
+        while stack:
+            node = stack.pop()
+            distance = _hamming64(value, node.value)
+            if distance <= max_distance:
+                matches.append((node.value, distance))
+            lower = distance - max_distance
+            upper = distance + max_distance
+            stack.extend(child for edge, child in node.children.items() if lower <= edge <= upper)
+        return matches
+
+
+@dataclass
+class _BKNode:
+    value: int
+    children: dict[int, _BKNode] = field(default_factory=dict)
+
+
+def _hamming64(left: int, right: int) -> int:
+    return (left ^ right).bit_count()
+
+
+class RaabinDetectionDataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
+    def __init__(self, frame: pd.DataFrame, *, split: str, limit: int = 0) -> None:
+        selected = frame.loc[
+            (frame["split"] == split) & (frame["detector_eligible"].astype(bool))
+        ].copy()
+        grouped: list[tuple[str, pd.DataFrame]] = list(selected.groupby("image_id", sort=True))
+        if limit > 0:
+            grouped = grouped[:limit]
+        self.grouped = grouped
+
+    def __len__(self) -> int:
+        return len(self.grouped)
+
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        _, group = self.grouped[index]
+        image_path = Path(str(group.iloc[0]["image_path"]))
+        with Image.open(image_path) as image:
+            image_tensor = _pil_to_tensor(image.convert("RGB"))
+        boxes = torch.as_tensor(
+            group[["x_min", "y_min", "x_max", "y_max"]].to_numpy(dtype=np.float32),
+            dtype=torch.float32,
+        )
+        labels = torch.ones((len(group),), dtype=torch.int64)
+        area = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+        target = {
+            "boxes": boxes,
+            "labels": labels,
+            "area": area,
+            "iscrowd": torch.zeros((len(group),), dtype=torch.int64),
+            "image_id": torch.tensor([index], dtype=torch.int64),
+        }
+        return image_tensor, target
+
+
+def _pil_to_tensor(image: Image.Image) -> torch.Tensor:
+    arr = np.asarray(image, dtype=np.float32) / 255.0
+    return torch.from_numpy(arr).permute(2, 0, 1).contiguous()
+
+
+def _train_raabin_detector(
+    *,
+    manifest: Path,
+    output_dir: Path,
+    epochs: int,
+    batch_size: int,
+    num_workers: int,
+    device_name: str,
+    seed: int,
+    smoke_limit: int,
+) -> None:
+    _seed_everything(seed)
+    frame = pd.read_csv(manifest)
+    train_dataset = RaabinDetectionDataset(frame, split="train", limit=smoke_limit)
+    val_limit = max(1, min(smoke_limit, 64)) if smoke_limit > 0 else 0
+    val_dataset = RaabinDetectionDataset(frame, split="validation", limit=val_limit)
+    if len(train_dataset) == 0 or len(val_dataset) == 0:
+        raise SystemExit("RAABIN DETECTOR TRAINING BLOCKED: empty train/validation split")
+
+    device = _device(device_name)
+    model = _create_faster_rcnn_detector().to(device)
+    optimizer = torch.optim.SGD(
+        [param for param in model.parameters() if param.requires_grad],
+        lr=0.005,
+        momentum=0.9,
+        weight_decay=0.0005,
+    )
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        collate_fn=_detection_collate,
+        pin_memory=device.type == "cuda",
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=1,
+        shuffle=False,
+        num_workers=num_workers,
+        collate_fn=_detection_collate,
+        pin_memory=device.type == "cuda",
+    )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    metrics_rows: list[dict[str, object]] = []
+    best_recall = -1.0
+    best_path = output_dir / "best_checkpoint.pt"
+    for epoch in range(1, epochs + 1):
+        model.train()
+        losses: list[float] = []
+        for images, targets in train_loader:
+            images = [image.to(device) for image in images]
+            targets = [
+                {key: value.to(device) for key, value in target.items()} for target in targets
+            ]
+            loss_dict = model(images, targets)
+            loss = sum(value for value in loss_dict.values())
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+            optimizer.step()
+            losses.append(float(loss.detach().cpu()))
+
+        val_metrics = _evaluate_detector(model, val_loader, device=device, score_threshold=0.05)
+        row: dict[str, object] = {
+            "epoch": epoch,
+            "train_loss": float(np.mean(losses)) if losses else float("nan"),
+            **val_metrics,
+        }
+        metrics_rows.append(row)
+        pd.DataFrame(metrics_rows).to_csv(output_dir / "training_metrics.csv", index=False)
+        checkpoint = {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "epoch": epoch,
+            "seed": seed,
+            "detector": "torchvision_faster_rcnn_resnet50_fpn",
+            "score_threshold": 0.05,
+            "validation_metrics": val_metrics,
+        }
+        torch.save(checkpoint, output_dir / f"epoch_{epoch:03d}.pt")
+        if float(val_metrics["recall"]) > best_recall:
+            best_recall = float(val_metrics["recall"])
+            torch.save(checkpoint, best_path)
+
+    _freeze_detector_threshold(
+        best_path,
+        frame,
+        output_dir,
+        device=device,
+        num_workers=num_workers,
+        limit=val_limit,
+    )
+
+
+def _seed_everything(seed: int) -> None:
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def _create_faster_rcnn_detector() -> torch.nn.Module:
+    from torchvision.models.detection import fasterrcnn_resnet50_fpn
+
+    return fasterrcnn_resnet50_fpn(weights=None, weights_backbone=None, num_classes=2)
+
+
+def _detection_collate(
+    batch: list[tuple[torch.Tensor, dict[str, torch.Tensor]]],
+) -> tuple[list[torch.Tensor], list[dict[str, torch.Tensor]]]:
+    images, targets = zip(*batch, strict=True)
+    return list(images), list(targets)
+
+
+def _evaluate_detector(
+    model: torch.nn.Module,
+    loader: DataLoader,
+    *,
+    device: torch.device,
+    score_threshold: float,
+) -> dict[str, float]:
+    from leukocyte_hil.cropping.boxes import BoundingBox
+    from leukocyte_hil.detection.matching import (
+        DetectionPrediction,
+        GroundTruthBox,
+        match_detections,
+    )
+
+    model.eval()
+    tp = fp = missed = annotated = matched = 0
+    with torch.no_grad():
+        for images, targets in loader:
+            outputs = model([image.to(device) for image in images])
+            for output, target in zip(outputs, targets, strict=True):
+                detections = [
+                    DetectionPrediction(
+                        detection_id=f"det_{idx}",
+                        bbox=BoundingBox(*[float(value) for value in box.tolist()]),
+                        confidence=float(score),
+                    )
+                    for idx, (box, score) in enumerate(
+                        zip(output["boxes"].cpu(), output["scores"].cpu(), strict=True)
+                    )
+                    if float(score) >= score_threshold
+                ]
+                gt = [
+                    GroundTruthBox(
+                        gt_cell_id=f"gt_{idx}",
+                        bbox=BoundingBox(*[float(value) for value in box.tolist()]),
+                    )
+                    for idx, box in enumerate(target["boxes"].cpu())
+                ]
+                matches = match_detections(detections, gt, iou_threshold=0.5)
+                tp += sum(match.status == "TP_DETECTION" for match in matches)
+                fp += sum(match.status == "FP_DETECTION" for match in matches)
+                missed += sum(match.status == "MISSED_GT_WBC" for match in matches)
+                annotated += len(gt)
+                matched += sum(match.status == "TP_DETECTION" for match in matches)
+    precision = _rate(tp, tp + fp)
+    recall = _rate(tp, annotated)
+    return {
+        "precision": precision,
+        "recall": recall,
+        "annotated_wbcs": float(annotated),
+        "matched": float(matched),
+        "missed": float(missed),
+        "false_positives": float(fp),
+    }
+
+
+def _freeze_detector_threshold(
+    checkpoint_path: Path,
+    frame: pd.DataFrame,
+    output_dir: Path,
+    *,
+    device: torch.device,
+    num_workers: int,
+    limit: int,
+) -> None:
+    model = _create_faster_rcnn_detector().to(device)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    val_dataset = RaabinDetectionDataset(frame, split="validation", limit=limit)
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=1,
+        shuffle=False,
+        num_workers=num_workers,
+        collate_fn=_detection_collate,
+        pin_memory=device.type == "cuda",
+    )
+    candidates = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90]
+    rows = []
+    for threshold in candidates:
+        metrics = _evaluate_detector(model, val_loader, device=device, score_threshold=threshold)
+        precision = float(metrics["precision"])
+        recall = float(metrics["recall"])
+        f1 = (
+            (2.0 * precision * recall) / (precision + recall)
+            if precision > 0 and recall > 0
+            else 0.0
+        )
+        rows.append({"score_threshold": threshold, "f1": f1, **metrics})
+    threshold_frame = pd.DataFrame(rows)
+    threshold_frame.to_csv(output_dir / "validation_threshold_sweep.csv", index=False)
+    best = threshold_frame.sort_values(["f1", "recall"], ascending=False).iloc[0].to_dict()
+    (output_dir / "detector_threshold.json").write_text(json.dumps(best, indent=2) + "\n")
 
 
 if __name__ == "__main__":

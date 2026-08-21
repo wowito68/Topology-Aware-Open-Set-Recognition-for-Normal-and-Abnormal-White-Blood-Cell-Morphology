@@ -1,4 +1,18 @@
 {
-  "status": "NOT_EVALUATED_ARCHIVE_INCOMPLETE",
-  "reason": "RAABIN_DOWNLOAD_INCOMPLETE_HTTP_406_ON_ARIA2_RESUME"
+  "status": "RAABIN_FULL_FIELD_DETECTION_GATE_PASS",
+  "archive_integrity": "PASS",
+  "fullfield_images": 20936,
+  "fullfield_json_annotations": 20936,
+  "annotation_format": "per-image JSON with Cell_* entries and x1/y1/x2/y2 boxes",
+  "detector_eligible_boxes": 24506,
+  "detector_eligible_images": 16982,
+  "excluded_annotations": {
+    "empty_label": 9000,
+    "artifact": 3832,
+    "burst": 3372
+  },
+  "split_unit": "Film ID",
+  "split_limitation": "Patient identifiers were not established in the materialized audit.",
+  "duplicate_audit": "PASS exact cross-split SHA256 duplicates = 0",
+  "detector_phase": "STARTED_IN_TMUX"
 }

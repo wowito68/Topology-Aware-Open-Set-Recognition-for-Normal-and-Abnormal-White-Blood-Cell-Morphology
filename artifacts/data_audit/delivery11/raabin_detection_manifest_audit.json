@@ -1,0 +1,186 @@
+{
+  "materialized_root": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield",
+  "output_csv": "data/manifests/delivery11_raabin_detection.csv",
+  "seed": 37,
+  "row_count_all_annotations": 40710,
+  "row_count_detector_eligible": 24506,
+  "image_count_detector_eligible": 16982,
+  "film_id_count": 73,
+  "split_unit": "film_id",
+  "split_limitation": "Raabin patient identifiers were not established; Film ID is used as the deterministic grouping unit.",
+  "image_split_counts": {
+    "test": 2737,
+    "train": 11413,
+    "validation": 2832
+  },
+  "box_split_counts": {
+    "test": 3703,
+    "train": 17032,
+    "validation": 3771
+  },
+  "raw_label_counts": {
+    "Neutrophil": 13083,
+    "": 9000,
+    "Artifact": 3837,
+    "Burst": 3372,
+    "Unknn": 2747,
+    "Large Lymph": 2517,
+    "Small Lymph": 2256,
+    "Eosinophil": 2097,
+    "Monocyte": 1041,
+    "Band": 434,
+    "Basophil": 280,
+    "Meta": 33,
+    "Not centered": 30,
+    "NRBC": 6,
+    "Megakar": 1
+  },
+  "excluded_counts": {
+    "empty_label": 9000,
+    "artifact": 3832,
+    "burst": 3372
+  },
+  "mapped_morphology_counts": {
+    "neutrophil_segmented": 13078,
+    "unknown": 5754,
+    "lymphocyte": 2256,
+    "eosinophil": 2097,
+    "monocyte": 1041,
+    "basophil": 280
+  },
+  "known_unknown_counts": {
+    "known": 18752,
+    "unknown": 5754
+  },
+  "invalid_box_count": 24,
+  "invalid_box_samples": [
+    {
+      "image_id": "second_microscope/Album_4/20181219_124818",
+      "cell_key": "Cell_1",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_4/20181219_131737",
+      "cell_key": "Cell_0",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_4/20181219_132805",
+      "cell_key": "Cell_0",
+      "label": "Neutrophil"
+    },
+    {
+      "image_id": "second_microscope/Album_4/20181219_132919",
+      "cell_key": "Cell_1",
+      "label": "Neutrophil"
+    },
+    {
+      "image_id": "second_microscope/Album_4/20181219_133237",
+      "cell_key": "Cell_1",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_4/20181219_133303",
+      "cell_key": "Cell_1",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_4/20181219_133657",
+      "cell_key": "Cell_0",
+      "label": "Not centered"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_131745_HDR",
+      "cell_key": "Cell_1",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_132734_HDR",
+      "cell_key": "Cell_0",
+      "label": "Neutrophil"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_132753_HDR",
+      "cell_key": "Cell_0",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_184541",
+      "cell_key": "Cell_0",
+      "label": "Neutrophil"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_185009",
+      "cell_key": "Cell_1",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_185026",
+      "cell_key": "Cell_1",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_185310",
+      "cell_key": "Cell_1",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_191852",
+      "cell_key": "Cell_1",
+      "label": "Artifact"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_192017",
+      "cell_key": "Cell_0",
+      "label": "Artifact"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_192303",
+      "cell_key": "Cell_1",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_192507",
+      "cell_key": "Cell_0",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_5/20181226_192530",
+      "cell_key": "Cell_0",
+      "label": "Unknn"
+    },
+    {
+      "image_id": "second_microscope/Album_6/20181230_142538",
+      "cell_key": "Cell_2",
+      "label": "Artifact"
+    },
+    {
+      "image_id": "second_microscope/Album_6/20181230_143310",
+      "cell_key": "Cell_3",
+      "label": "Artifact"
+    },
+    {
+      "image_id": "second_microscope/Album_6/20181230_145619",
+      "cell_key": "Cell_0",
+      "label": "Artifact"
+    },
+    {
+      "image_id": "second_microscope/sent2/20181210_184854",
+      "cell_key": "Cell_1",
+      "label": "Large Lymph"
+    },
+    {
+      "image_id": "second_microscope/sent2/20181211_114919",
+      "cell_key": "Cell_0",
+      "label": "Neutrophil"
+    }
+  ],
+  "known_taxonomy": [
+    "basophil",
+    "eosinophil",
+    "lymphocyte",
+    "monocyte",
+    "neutrophil_segmented"
+  ],
+  "detector_class": "LEUKOCYTE_CANDIDATE"
+}

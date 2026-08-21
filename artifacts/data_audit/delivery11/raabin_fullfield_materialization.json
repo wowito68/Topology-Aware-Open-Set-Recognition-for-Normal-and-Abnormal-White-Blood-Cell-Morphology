@@ -1,0 +1,666 @@
+{
+  "archive": "/opt/dlami/nvme/datasets/raabin_wbc/raw/WBCData.rar",
+  "output_root": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield",
+  "inner_archive_count": 73,
+  "materialized": [
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-5-10-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-5-10-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-5-10-1",
+      "skipped_existing": false,
+      "image_count": 978,
+      "json_count": 978
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-5-11-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-5-11-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-5-11-1",
+      "skipped_existing": false,
+      "image_count": 227,
+      "json_count": 227
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-5-13-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-5-13-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-5-13-1",
+      "skipped_existing": false,
+      "image_count": 689,
+      "json_count": 689
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-5-4-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-5-4-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-5-4-1",
+      "skipped_existing": false,
+      "image_count": 377,
+      "json_count": 377
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-5-5-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-5-5-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-5-5-1",
+      "skipped_existing": false,
+      "image_count": 160,
+      "json_count": 160
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-7-24-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-7-24-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-7-24-1",
+      "skipped_existing": false,
+      "image_count": 656,
+      "json_count": 656
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-7-24-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-7-24-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-7-24-2",
+      "skipped_existing": false,
+      "image_count": 574,
+      "json_count": 574
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-1-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-1-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-1-1",
+      "skipped_existing": false,
+      "image_count": 615,
+      "json_count": 615
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-10-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-10-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-10-1",
+      "skipped_existing": false,
+      "image_count": 1135,
+      "json_count": 1135
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-12-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-12-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-12-2",
+      "skipped_existing": false,
+      "image_count": 174,
+      "json_count": 174
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-12-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-12-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-12-3",
+      "skipped_existing": false,
+      "image_count": 139,
+      "json_count": 139
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-12-4.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-12-4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-12-4",
+      "skipped_existing": false,
+      "image_count": 224,
+      "json_count": 224
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-12-5.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-12-5",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-12-5",
+      "skipped_existing": false,
+      "image_count": 247,
+      "json_count": 247
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-12-6.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-12-6",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-12-6",
+      "skipped_existing": false,
+      "image_count": 91,
+      "json_count": 91
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-13-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-13-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-13-1",
+      "skipped_existing": false,
+      "image_count": 88,
+      "json_count": 88
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-13-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-13-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-13-2",
+      "skipped_existing": false,
+      "image_count": 51,
+      "json_count": 51
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-13-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-13-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-13-3",
+      "skipped_existing": false,
+      "image_count": 178,
+      "json_count": 178
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-13-4.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-13-4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-13-4",
+      "skipped_existing": false,
+      "image_count": 479,
+      "json_count": 479
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-13-5.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-13-5",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-13-5",
+      "skipped_existing": false,
+      "image_count": 96,
+      "json_count": 96
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-13-6.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-13-6",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-13-6",
+      "skipped_existing": false,
+      "image_count": 79,
+      "json_count": 79
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-17-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-17-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-17-1",
+      "skipped_existing": false,
+      "image_count": 279,
+      "json_count": 279
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-17-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-17-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-17-2",
+      "skipped_existing": false,
+      "image_count": 302,
+      "json_count": 302
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-17-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-17-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-17-3",
+      "skipped_existing": false,
+      "image_count": 376,
+      "json_count": 376
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-17-4.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-17-4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-17-4",
+      "skipped_existing": false,
+      "image_count": 130,
+      "json_count": 130
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-20-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-20-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-20-1",
+      "skipped_existing": false,
+      "image_count": 94,
+      "json_count": 94
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-20-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-20-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-20-2",
+      "skipped_existing": false,
+      "image_count": 218,
+      "json_count": 218
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-20-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-20-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-20-3",
+      "skipped_existing": false,
+      "image_count": 282,
+      "json_count": 282
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-20-4.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-20-4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-20-4",
+      "skipped_existing": false,
+      "image_count": 193,
+      "json_count": 193
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-22-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-22-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-22-1",
+      "skipped_existing": false,
+      "image_count": 118,
+      "json_count": 118
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-22-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-22-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-22-2",
+      "skipped_existing": false,
+      "image_count": 297,
+      "json_count": 297
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-22-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-22-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-22-3",
+      "skipped_existing": false,
+      "image_count": 196,
+      "json_count": 196
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-22-4.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-22-4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-22-4",
+      "skipped_existing": false,
+      "image_count": 114,
+      "json_count": 114
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-22-5.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-22-5",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-22-5",
+      "skipped_existing": false,
+      "image_count": 153,
+      "json_count": 153
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-22-6.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-22-6",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-22-6",
+      "skipped_existing": false,
+      "image_count": 103,
+      "json_count": 103
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-24-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-24-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-24-1",
+      "skipped_existing": false,
+      "image_count": 254,
+      "json_count": 254
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-24-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-24-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-24-2",
+      "skipped_existing": false,
+      "image_count": 178,
+      "json_count": 178
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-24-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-24-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-24-3",
+      "skipped_existing": false,
+      "image_count": 130,
+      "json_count": 130
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-24-4.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-24-4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-24-4",
+      "skipped_existing": false,
+      "image_count": 63,
+      "json_count": 63
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-24-5.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-24-5",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-24-5",
+      "skipped_existing": false,
+      "image_count": 99,
+      "json_count": 99
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-24-6.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-24-6",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-24-6",
+      "skipped_existing": false,
+      "image_count": 172,
+      "json_count": 172
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-24-7.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-24-7",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-24-7",
+      "skipped_existing": false,
+      "image_count": 47,
+      "json_count": 47
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-26-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-26-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-26-1",
+      "skipped_existing": false,
+      "image_count": 327,
+      "json_count": 327
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-27-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-27-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-27-1",
+      "skipped_existing": false,
+      "image_count": 511,
+      "json_count": 511
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-29-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-29-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-29-1",
+      "skipped_existing": false,
+      "image_count": 718,
+      "json_count": 718
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-29-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-29-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-29-2",
+      "skipped_existing": false,
+      "image_count": 137,
+      "json_count": 137
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-3-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-3-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-3-1",
+      "skipped_existing": false,
+      "image_count": 531,
+      "json_count": 531
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-3-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-3-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-3-2",
+      "skipped_existing": false,
+      "image_count": 442,
+      "json_count": 442
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-5-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-5-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-5-1",
+      "skipped_existing": false,
+      "image_count": 150,
+      "json_count": 150
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-6-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-6-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-6-1",
+      "skipped_existing": false,
+      "image_count": 651,
+      "json_count": 651
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-8-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-8-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-8-1",
+      "skipped_existing": false,
+      "image_count": 721,
+      "json_count": 721
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-8-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-8-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-8-2",
+      "skipped_existing": false,
+      "image_count": 406,
+      "json_count": 406
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-8-8-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-8-8-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-8-8-3",
+      "skipped_existing": false,
+      "image_count": 178,
+      "json_count": 178
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-1-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-1-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-1-1",
+      "skipped_existing": false,
+      "image_count": 104,
+      "json_count": 104
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-1-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-1-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-1-2",
+      "skipped_existing": false,
+      "image_count": 387,
+      "json_count": 387
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-1-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-1-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-1-3",
+      "skipped_existing": false,
+      "image_count": 28,
+      "json_count": 28
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-3-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-3-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-3-1",
+      "skipped_existing": false,
+      "image_count": 142,
+      "json_count": 142
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-3-2.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-3-2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-3-2",
+      "skipped_existing": false,
+      "image_count": 157,
+      "json_count": 157
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-3-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-3-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-3-3",
+      "skipped_existing": false,
+      "image_count": 149,
+      "json_count": 149
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-3-4.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-3-4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-3-4",
+      "skipped_existing": false,
+      "image_count": 199,
+      "json_count": 199
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-3-5.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-3-5",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-3-5",
+      "skipped_existing": false,
+      "image_count": 149,
+      "json_count": 149
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-4-1.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-4-1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-4-1",
+      "skipped_existing": false,
+      "image_count": 93,
+      "json_count": 93
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-4-3.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-4-3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-4-3",
+      "skipped_existing": false,
+      "image_count": 113,
+      "json_count": 113
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-4-4.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-4-4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-4-4",
+      "skipped_existing": false,
+      "image_count": 111,
+      "json_count": 111
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-4-5.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-4-5",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-4-5",
+      "skipped_existing": false,
+      "image_count": 95,
+      "json_count": 95
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-4-6.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-4-6",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-4-6",
+      "skipped_existing": false,
+      "image_count": 150,
+      "json_count": 150
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC First_microscope/95-9-4-7.zip",
+      "source": "first_microscope",
+      "film_id": "95-9-4-7",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/first_microscope/95-9-4-7",
+      "skipped_existing": false,
+      "image_count": 65,
+      "json_count": 65
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC Second_microscope/Album_4.zip",
+      "source": "second_microscope",
+      "film_id": "Album_4",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/second_microscope/Album_4",
+      "skipped_existing": false,
+      "image_count": 594,
+      "json_count": 594
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC Second_microscope/Album_5.zip",
+      "source": "second_microscope",
+      "film_id": "Album_5",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/second_microscope/Album_5",
+      "skipped_existing": false,
+      "image_count": 583,
+      "json_count": 583
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC Second_microscope/Album_6.zip",
+      "source": "second_microscope",
+      "film_id": "Album_6",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/second_microscope/Album_6",
+      "skipped_existing": false,
+      "image_count": 407,
+      "json_count": 407
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC Second_microscope/cml-baso1,3.zip",
+      "source": "second_microscope",
+      "film_id": "cml-baso1,3",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/second_microscope/cml-baso1,3",
+      "skipped_existing": false,
+      "image_count": 319,
+      "json_count": 319
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC Second_microscope/sent.zip",
+      "source": "second_microscope",
+      "film_id": "sent",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/second_microscope/sent",
+      "skipped_existing": false,
+      "image_count": 711,
+      "json_count": 711
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC Second_microscope/sent2.zip",
+      "source": "second_microscope",
+      "film_id": "sent2",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/second_microscope/sent2",
+      "skipped_existing": false,
+      "image_count": 421,
+      "json_count": 421
+    },
+    {
+      "inner_archive": "Index of WBC Data/Index of WBC Second_microscope/sentremained1.zip",
+      "source": "second_microscope",
+      "film_id": "sentremained1",
+      "target_dir": "/opt/dlami/nvme/datasets/raabin_wbc/fullfield/second_microscope/sentremained1",
+      "skipped_existing": false,
+      "image_count": 132,
+      "json_count": 132
+    }
+  ],
+  "total_images": 20936,
+  "total_jsons": 20936
+}

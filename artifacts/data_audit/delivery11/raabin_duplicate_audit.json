@@ -1,0 +1,360 @@
+{
+  "manifest": "data/manifests/delivery11_raabin_detection.csv",
+  "image_count": 16982,
+  "exact_cross_split_duplicate_count": 0,
+  "exact_cross_split_duplicates": [],
+  "average_hash_candidate_count_hamming_le_4": 10000,
+  "average_hash_candidates_hamming_le_4": [
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_172834",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_173259",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_173330",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_172834",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_173259",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_173330",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_172834",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_173259",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_173330",
+      "hamming": 1
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_180743",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_190416",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-17-4/20161107_191326",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_180743",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_190416",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-17-4/20161107_191326",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_180743",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_190416",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-17-4/20161107_191326",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135248",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135354",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135401",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135248",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135354",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135401",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135248",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135354",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-10-1/20161102_135401",
+      "hamming": 4
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_175015",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_190430",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_191540",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_175015",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_190430",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_191540",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_175015",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_190430",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_191540",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_143709",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_143947",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_144530",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_143709",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_143947",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_144530",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_143709",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_143947",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-13-2/20161103_144530",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-9-3-4/20161123_184420",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120847",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-9-3-4/20161123_184420",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120927",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-9-3-4/20161123_184420",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-7-24-2/20161015_183603",
+      "hamming": 3
+    },
+    {
+      "left_split": "train",
+      "left_image_id": "first_microscope/95-5-10-1/20160731_120755",
+      "right_split": "validation",
+      "right_image_id": "first_microscope/95-8-17-4/20161107_191047",
+      "hamming": 3
+    }
+  ],
+  "verdict": "PASS"
+}
