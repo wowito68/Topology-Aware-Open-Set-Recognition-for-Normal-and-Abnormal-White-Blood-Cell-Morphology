@@ -1,0 +1,10 @@
+{
+  "checkpoint": "artifacts/checkpoints/delivery6/d6_v2_ce_seed37_2d9d5aa0027e6f49/best_checkpoint.pt",
+  "checkpoint_sha256": "a1ff5939b431805a70eb5bda1e4e09059ff8e3fc0521fad2d41884b7c415deca",
+  "manifest": "data/manifests/mll23_seed37_v2_conservative.csv",
+  "n_oracle_rows": 28828,
+  "n_known_validation": 2741,
+  "n_known_test": 2742,
+  "n_unknown_test": 23345,
+  "reproduction_decision": "PASS"
+}

@@ -1,0 +1,16 @@
+{
+  "dataset": "Raabin-WBC",
+  "audit_date": "2026-08-21",
+  "official_page": "https://raabindata.com/",
+  "download_url": "https://dl.raabindata.com/WBCData.rar",
+  "article_url": "https://www.nature.com/articles/s41598-021-04426-x",
+  "article_license": "Creative Commons Attribution 4.0 International (for the Scientific Reports article)",
+  "dataset_terms_visible_on_official_page": "Official Raabin page states the normal WBC dataset is available free of charge for commercial and non-commercial projects.",
+  "citation_requirements": [
+    "Cite the Raabin-WBC Scientific Reports dataset paper.",
+    "If ground truth data are used, also cite the Tavakoli et al. segmentation/feature extraction paper as requested by the official page."
+  ],
+  "redistribution_restrictions": "No separate redistribution terms were visible on the audited official landing page before archive materialization.",
+  "intended_research_use_permitted": true,
+  "notes": "Dataset archive terms must be rechecked after materialization if a license/readme file is present."
+}

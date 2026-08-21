@@ -1,0 +1,18 @@
+{
+  "dataset": "Raabin-WBC",
+  "download_url": "https://dl.raabindata.com/WBCData.rar",
+  "remote_raw_path": "/opt/dlami/nvme/datasets/raabin_wbc/raw/WBCData.rar",
+  "expected_content_length_bytes": 55781603692,
+  "logical_file_size_bytes": 48810164224,
+  "allocated_file_size_bytes": 26147295232,
+  "aria2_control_file_present": true,
+  "range_test_present": true,
+  "download_complete": false,
+  "status": "RAABIN_DOWNLOAD_INCOMPLETE_HTTP_406_ON_ARIA2_RESUME",
+  "notes": [
+    "Initial official HEAD request reported content-length 55781603692 bytes.",
+    "aria2 downloaded a partial sparse archive but repeated resume attempts received HTTP 406.",
+    "curl range test with a browser User-Agent succeeded for a 1 MiB range, but too slowly for practical completion in this run.",
+    "Detector phase is stopped because Raabin archive is not fully materialized."
+  ]
+}

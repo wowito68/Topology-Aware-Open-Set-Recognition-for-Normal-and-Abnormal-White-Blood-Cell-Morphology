@@ -1,18 +1,154 @@
-status: pending_remote_known_validation_calibration
-reason: EC2_HOST is not configured locally; authoritative calibration must run on EC2.
+status: frozen_after_known_validation_calibration
 known_test_used_for_threshold_calibration: false
 unknown_test_used_for_threshold_calibration: false
-coverage_targets:
-  - 0.95
-  - 0.90
-  - 0.80
-  - 0.70
-  - 0.60
-strategies:
-  - confidence_only
-  - confidence_margin
-  - confidence_margin_msp_qc
-remote_command: >-
-  .venv/bin/python scripts/experiments/run_delivery11.py calibrate-triage
-  --signals-csv artifacts/metrics/delivery11/oracle_validation_signals.csv
-  --output-yaml configs/triage/triage_delivery11_operating_points.yaml
+operating_points:
+  -
+    strategy: confidence_only
+    target_coverage: 0.95
+    actual_known_validation_coverage: 0.9500182415176943
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9741078615188599
+    margin_threshold: null
+    unknown_threshold: null
+    qc_required: false
+    config_hash: 5f55af53a893535a790908b997d4726778536cdbc96cd452fac2db8743988c90
+  -
+    strategy: confidence_only
+    target_coverage: 0.9
+    actual_known_validation_coverage: 0.9000364830353885
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9962373971939087
+    margin_threshold: null
+    unknown_threshold: null
+    qc_required: false
+    config_hash: 41fde8c611e05044e1e12ed1076bf75ce7549e306db6c0e3e58184cea3e25be8
+  -
+    strategy: confidence_only
+    target_coverage: 0.8
+    actual_known_validation_coverage: 0.800072966070777
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9993878602981567
+    margin_threshold: null
+    unknown_threshold: null
+    qc_required: false
+    config_hash: 479ab20a2949d640f84f481ceec12b7d82c9eea9be169418456de34ef9b74eac
+  -
+    strategy: confidence_only
+    target_coverage: 0.7
+    actual_known_validation_coverage: 0.7001094491061657
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9998006224632263
+    margin_threshold: null
+    unknown_threshold: null
+    qc_required: false
+    config_hash: d266f72d708a7da374c58023456074927fea97f60e012d9eefda335b8e018ddb
+  -
+    strategy: confidence_only
+    target_coverage: 0.6
+    actual_known_validation_coverage: 0.6001459321415542
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9999140501022339
+    margin_threshold: null
+    unknown_threshold: null
+    qc_required: false
+    config_hash: 74b3b6490e54f4ec330d6e19207c327ee8f3444858e3a342a0cd85e3601fdad0
+  -
+    strategy: confidence_margin
+    target_coverage: 0.95
+    actual_known_validation_coverage: 0.9500182415176943
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9741078615188599
+    margin_threshold: 0.9485930129885674
+    unknown_threshold: null
+    qc_required: false
+    config_hash: 9404fabcfd9daf4932ac29a42bbfdb647ef7b36d03c308c31c4354a204579fa2
+  -
+    strategy: confidence_margin
+    target_coverage: 0.9
+    actual_known_validation_coverage: 0.9000364830353885
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9962373971939087
+    margin_threshold: 0.9485930129885674
+    unknown_threshold: null
+    qc_required: false
+    config_hash: 762a1b4073f97631328e5332ea1591cd60c9408fe3be36c5e12c03316c05360a
+  -
+    strategy: confidence_margin
+    target_coverage: 0.8
+    actual_known_validation_coverage: 0.800072966070777
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9993878602981567
+    margin_threshold: 0.9975469082128257
+    unknown_threshold: null
+    qc_required: false
+    config_hash: bb498f1110727a17236fc13c7d9d51c0e69d6608cbf01e772dcb81458828cb12
+  -
+    strategy: confidence_margin
+    target_coverage: 0.7
+    actual_known_validation_coverage: 0.7001094491061657
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9998006224632263
+    margin_threshold: 0.9994181332294829
+    unknown_threshold: null
+    qc_required: false
+    config_hash: d4b9cd959dcd0d9c629123763019c6d80102688254af897517fbf0a376391a04
+  -
+    strategy: confidence_margin
+    target_coverage: 0.6
+    actual_known_validation_coverage: 0.6001459321415542
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9999140501022339
+    margin_threshold: 0.9997887313365936
+    unknown_threshold: null
+    qc_required: false
+    config_hash: a38969ca89a943942ef9a98340ee1090ab4a41c32accbf401c1ff0863260a988
+  -
+    strategy: confidence_margin_msp_qc
+    target_coverage: 0.95
+    actual_known_validation_coverage: 0.9500182415176943
+    calibration_sample_count: 2741
+    confidence_threshold: 0.4683550000190735
+    margin_threshold: 0.006973296403884888
+    unknown_threshold: 0.5316449999809265
+    qc_required: true
+    config_hash: da1a67bfa7dfc0587133e954f51f0c86fee407b9acdffa8c2d8f5921c5d40b88
+  -
+    strategy: confidence_margin_msp_qc
+    target_coverage: 0.9
+    actual_known_validation_coverage: 0.9018606348048157
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9741078615188599
+    margin_threshold: 0.9485930129885674
+    unknown_threshold: 0.025892138481140137
+    qc_required: true
+    config_hash: cb8e4b8121bff772f05b35e040b3ecf7fa49b3d9b50b4d459afc8914a2f3f477
+  -
+    strategy: confidence_margin_msp_qc
+    target_coverage: 0.8
+    actual_known_validation_coverage: 0.804086099963517
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9985999464988708
+    margin_threshold: 0.9975469082128257
+    unknown_threshold: 0.0014000535011291513
+    qc_required: true
+    config_hash: 2e36fec65409d872bc4f8df967e95658aea22b46856a69f9b5f8bea077c1f3ec
+  -
+    strategy: confidence_margin_msp_qc
+    target_coverage: 0.7
+    actual_known_validation_coverage: 0.70777088653776
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9996538162231445
+    margin_threshold: 0.9994181332294829
+    unknown_threshold: 0.00034618377685546875
+    qc_required: true
+    config_hash: 5ba82882bcb9bda8e08a60dccaadc613db79690ccc74d7069454ee2b6aee26a8
+  -
+    strategy: confidence_margin_msp_qc
+    target_coverage: 0.6
+    actual_known_validation_coverage: 0.6110908427581174
+    calibration_sample_count: 2741
+    confidence_threshold: 0.9998723268508911
+    margin_threshold: 0.9997887313365936
+    unknown_threshold: 0.00012767314910888672
+    qc_required: true
+    config_hash: 4229115379d5fb35006e2584b745e07e32d776dd6f83c4b45f8b2af992a4f7ec

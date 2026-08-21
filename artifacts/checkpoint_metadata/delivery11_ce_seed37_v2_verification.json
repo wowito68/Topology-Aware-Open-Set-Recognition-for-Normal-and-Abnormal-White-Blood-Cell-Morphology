@@ -1,0 +1,7 @@
+{
+  "checkpoint": "artifacts/checkpoints/delivery6/d6_v2_ce_seed37_2d9d5aa0027e6f49/best_checkpoint.pt",
+  "exact_match": true,
+  "exists": true,
+  "expected_sha256": "a1ff5939b431805a70eb5bda1e4e09059ff8e3fc0521fad2d41884b7c415deca",
+  "observed_sha256": "a1ff5939b431805a70eb5bda1e4e09059ff8e3fc0521fad2d41884b7c415deca"
+}
