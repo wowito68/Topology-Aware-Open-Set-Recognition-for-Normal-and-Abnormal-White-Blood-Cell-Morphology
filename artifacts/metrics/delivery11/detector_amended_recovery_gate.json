@@ -1,0 +1,13 @@
+{
+  "amended_gate": true,
+  "historical_root_cause": "NOT ISOLATED",
+  "clean_preflight": "PASS",
+  "metric_sanity": "PASS",
+  "leakage_audit": "PASS",
+  "qualitative_localization_audit": "PASS",
+  "detector_metric_sanity_gate": "PASS",
+  "detector_numerical_recovery_gate": "PASS",
+  "qualification": "Historical NaN root cause remains unresolved, but clean reproducibility, metric sanity, train/validation isolation, and fail-fast execution are established.",
+  "scientific_protocol_changed": false,
+  "full_run_authorized": true
+}

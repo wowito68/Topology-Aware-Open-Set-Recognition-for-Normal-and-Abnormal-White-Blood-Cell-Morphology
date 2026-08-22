@@ -1,0 +1,50 @@
+START_UTC=2026-08-21T22:11:13Z
+/opt/pytorch/lib/python3.13/site-packages/torch/cuda/__init__.py:64: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+Exception in thread Thread-33 (_pin_memory_loop):
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "/usr/lib/python3.13/threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/pytorch/lib/python3.13/site-packages/torch/utils/data/_utils/pin_memory.py", line 52, in _pin_memory_loop
+    do_one_step()
+    ~~~~~~~~~~~^^
+  File "/opt/pytorch/lib/python3.13/site-packages/torch/utils/data/_utils/pin_memory.py", line 28, in do_one_step
+    r = in_queue.get(timeout=MP_STATUS_CHECK_INTERVAL)
+  File "/usr/lib/python3.13/multiprocessing/queues.py", line 120, in get
+    return _ForkingPickler.loads(res)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/opt/pytorch/lib/python3.13/site-packages/torch/multiprocessing/reductions.py", line 538, in rebuild_storage_fd
+    fd = df.detach()
+  File "/usr/lib/python3.13/multiprocessing/resource_sharer.py", line 57, in detach
+    with _resource_sharer.get_connection(self._id) as conn:
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/lib/python3.13/multiprocessing/resource_sharer.py", line 86, in get_connection
+    c = Client(address, authkey=process.current_process().authkey)
+  File "/usr/lib/python3.13/multiprocessing/connection.py", line 536, in Client
+    c = SocketClient(address)
+  File "/usr/lib/python3.13/multiprocessing/connection.py", line 673, in SocketClient
+    s.connect(address)
+    ~~~~~~~~~^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory
+Traceback (most recent call last):
+  File "/home/ubuntu/hemato-osr/scripts/experiments/run_delivery11.py", line 1345, in <module>
+    main()
+    ~~~~^^
+  File "/home/ubuntu/hemato-osr/scripts/experiments/run_delivery11.py", line 197, in main
+    _train_raabin_detector(
+    ~~~~~~~~~~~~~~~~~~~~~~^
+        manifest=args.manifest,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        smoke_limit=args.smoke_limit,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ubuntu/hemato-osr/scripts/experiments/run_delivery11.py", line 1195, in _train_raabin_detector
+    losses.append(float(loss.detach().cpu()))
+                        ~~~~~~~~~~~~~~~~~^^
+KeyboardInterrupt

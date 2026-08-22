@@ -1,0 +1,2 @@
+epoch,train_loss,train_loss_box_reg,train_loss_classifier,train_loss_objectness,train_loss_rpn_box_reg,finite_state,precision,recall,annotated_wbcs,matched,missed,false_positives
+1,0.059006743652418724,0.01965850906618374,0.027217397264716968,0.009523438058917859,0.0026073991903001895,PASS,0.628840020144368,0.9933704587642536,3771.0,3746.0,25.0,2211.0

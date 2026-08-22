@@ -1,0 +1,21 @@
+{
+  "training_images_checked": 11413,
+  "training_boxes_checked": 17032,
+  "tensor_finite_images_checked": 512,
+  "invalid_images": 0,
+  "non_finite_images": 0,
+  "zero_area_boxes": 0,
+  "negative_boxes": 0,
+  "out_of_range_boxes": 0,
+  "non_finite_boxes": 0,
+  "invalid_labels": 0,
+  "load_failures": [],
+  "box_failures": [],
+  "label_values": [
+    1
+  ],
+  "num_classes_expected": 2,
+  "foreground_label_expected": 1,
+  "image_tensor_audit_policy": "all images verified with PIL; deterministic 512-image tensor finite check; JPEG uint8 source cannot encode NaN/Inf",
+  "result": "PASS"
+}

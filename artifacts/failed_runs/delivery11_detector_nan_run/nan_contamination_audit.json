@@ -1,0 +1,140 @@
+{
+  "status": "INVALID_RUN_STOPPED",
+  "completed_epochs": 16,
+  "first_contaminated_epoch": 1,
+  "last_contaminated_epoch": 16,
+  "train_loss_nan_epochs": 16,
+  "validation_recall_values": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "checkpoint_contamination": [
+    {
+      "epoch": 1,
+      "nan_tensors": 295,
+      "nan_values": 41403577,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 2,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 3,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 4,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 5,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 6,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 7,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 8,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 9,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 10,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 11,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 12,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 13,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 14,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 15,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    },
+    {
+      "epoch": 16,
+      "nan_tensors": 295,
+      "nan_values": 41404487,
+      "total_values": 41405401,
+      "contaminated": true
+    }
+  ],
+  "scientific_detector_metrics_valid": false
+}

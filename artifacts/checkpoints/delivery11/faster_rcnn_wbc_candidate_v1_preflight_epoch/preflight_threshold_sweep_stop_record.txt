@@ -1,0 +1,8 @@
+STOP_THRESHOLD_SWEEP_UTC=2026-08-22T18:48:56Z
+    PID STAT     ELAPSED CMD
+  30743 Sl         03:10 /opt/pytorch/bin/python scripts/experiments/run_delivery11.py train-raabin-detector --manifest data/manifests/delivery11_raabin_detection.csv --output-dir artifacts/checkpoints/delivery11/faster_rcnn_wbc_candidate_v1_preflight_epoch --epochs 1 --batch-size 2 --num-workers 4 --device cuda --seed 37
+  30744 Rl         03:10 /opt/pytorch/bin/python scripts/experiments/run_delivery11.py train-raabin-detector --manifest data/manifests/delivery11_raabin_detection.csv --output-dir artifacts/checkpoints/delivery11/faster_rcnn_wbc_candidate_v1_preflight_epoch --epochs 1 --batch-size 2 --num-workers 4 --device cuda --seed 37
+  30745 Sl         03:10 /opt/pytorch/bin/python scripts/experiments/run_delivery11.py train-raabin-detector --manifest data/manifests/delivery11_raabin_detection.csv --output-dir artifacts/checkpoints/delivery11/faster_rcnn_wbc_candidate_v1_preflight_epoch --epochs 1 --batch-size 2 --num-workers 4 --device cuda --seed 37
+  30746 Rl         03:10 /opt/pytorch/bin/python scripts/experiments/run_delivery11.py train-raabin-detector --manifest data/manifests/delivery11_raabin_detection.csv --output-dir artifacts/checkpoints/delivery11/faster_rcnn_wbc_candidate_v1_preflight_epoch --epochs 1 --batch-size 2 --num-workers 4 --device cuda --seed 37
+    PID STAT     ELAPSED CMD
+  20564 Ssl     01:29:03 /opt/pytorch/bin/python scripts/experiments/run_delivery11.py train-raabin-detector --manifest data/manifests/delivery11_raabin_detection.csv --output-dir artifacts/checkpoints/delivery11/faster_rcnn_wbc_candidate_v1_preflight_epoch --epochs 1 --batch-size 2 --num-workers 4 --device cuda --seed 37

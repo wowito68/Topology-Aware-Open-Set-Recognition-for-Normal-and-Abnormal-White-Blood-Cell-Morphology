@@ -13,6 +13,7 @@ import hashlib
 import json
 import subprocess
 import tempfile
+import time
 import zipfile
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -1111,7 +1112,7 @@ class RaabinDetectionDataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]
         with Image.open(image_path) as image:
             image_tensor = _pil_to_tensor(image.convert("RGB"))
         boxes = torch.as_tensor(
-            group[["x_min", "y_min", "x_max", "y_max"]].to_numpy(dtype=np.float32),
+            group[["x_min", "y_min", "x_max", "y_max"]].to_numpy(dtype=np.float32).copy(),
             dtype=torch.float32,
         )
         labels = torch.ones((len(group),), dtype=torch.int64)
@@ -1176,32 +1177,91 @@ def _train_raabin_detector(
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    history_path = Path("artifacts/metrics/delivery11/detector_training_history_recovery.csv")
+    history_path.parent.mkdir(parents=True, exist_ok=True)
     metrics_rows: list[dict[str, object]] = []
     best_recall = -1.0
     best_path = output_dir / "best_checkpoint.pt"
+    run_start = time.perf_counter()
     for epoch in range(1, epochs + 1):
+        epoch_start = time.perf_counter()
         model.train()
         losses: list[float] = []
-        for images, targets in train_loader:
+        loss_component_totals: dict[str, list[float]] = defaultdict(list)
+        for batch_index, (images, targets) in enumerate(train_loader):
             images = [image.to(device) for image in images]
             targets = [
                 {key: value.to(device) for key, value in target.items()} for target in targets
             ]
             loss_dict = model(images, targets)
             loss = sum(value for value in loss_dict.values())
+            loss_values = {key: float(value.detach().cpu()) for key, value in loss_dict.items()}
+            _fail_if_nonfinite_loss(
+                loss_dict=loss_dict,
+                total_loss=loss,
+                output_dir=output_dir,
+                epoch=epoch,
+                batch_index=batch_index,
+                targets=targets,
+            )
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
+            gradient_stats = _gradient_finite_stats(model)
+            if int(str(gradient_stats["nonfinite_gradient_values"])) > 0:
+                _write_detection_nonfinite_event(
+                    output_dir=output_dir,
+                    phase="BACKWARD_GRADIENT",
+                    epoch=epoch,
+                    batch_index=batch_index,
+                    targets=targets,
+                    loss_values=loss_values,
+                    total_loss=float(loss.detach().cpu()),
+                    gradient_stats=gradient_stats,
+                )
+                raise FloatingPointError("Non-finite Faster R-CNN gradient detected")
             optimizer.step()
+            parameter_stats = _parameter_finite_stats(model)
+            if int(str(parameter_stats["nonfinite_values"])) > 0:
+                _write_detection_nonfinite_event(
+                    output_dir=output_dir,
+                    phase="OPTIMIZER_STEP",
+                    epoch=epoch,
+                    batch_index=batch_index,
+                    targets=targets,
+                    loss_values=loss_values,
+                    total_loss=float(loss.detach().cpu()),
+                    gradient_stats=gradient_stats,
+                    parameter_stats=parameter_stats,
+                )
+                raise FloatingPointError("Non-finite Faster R-CNN parameter detected")
             losses.append(float(loss.detach().cpu()))
+            for key, value in loss_values.items():
+                loss_component_totals[key].append(value)
 
         val_metrics = _evaluate_detector(model, val_loader, device=device, score_threshold=0.05)
+        parameter_stats = _parameter_finite_stats(model)
+        epoch_seconds = time.perf_counter() - epoch_start
+        cumulative_seconds = time.perf_counter() - run_start
         row: dict[str, object] = {
             "epoch": epoch,
             "train_loss": float(np.mean(losses)) if losses else float("nan"),
+            **{
+                f"train_{key}": float(np.mean(values)) if values else float("nan")
+                for key, values in sorted(loss_component_totals.items())
+            },
+            "finite_state": "PASS",
+            "finite_losses": True,
+            "finite_gradients": True,
+            "finite_parameters": int(str(parameter_stats["nonfinite_values"])) == 0,
+            "checkpoint_nonfinite_tensors": parameter_stats["nonfinite_tensors"],
+            "checkpoint_nonfinite_values": parameter_stats["nonfinite_values"],
+            "epoch_seconds": epoch_seconds,
+            "cumulative_seconds": cumulative_seconds,
             **val_metrics,
         }
         metrics_rows.append(row)
         pd.DataFrame(metrics_rows).to_csv(output_dir / "training_metrics.csv", index=False)
+        pd.DataFrame(metrics_rows).to_csv(history_path, index=False)
         checkpoint = {
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
@@ -1224,6 +1284,137 @@ def _train_raabin_detector(
         num_workers=num_workers,
         limit=val_limit,
     )
+
+
+def _fail_if_nonfinite_loss(
+    *,
+    loss_dict: dict[str, torch.Tensor],
+    total_loss: torch.Tensor,
+    output_dir: Path,
+    epoch: int,
+    batch_index: int,
+    targets: list[dict[str, torch.Tensor]],
+) -> None:
+    loss_values = {key: float(value.detach().cpu()) for key, value in loss_dict.items()}
+    component_finite = {
+        key: bool(torch.isfinite(value).all().item()) for key, value in loss_dict.items()
+    }
+    total_finite = bool(torch.isfinite(total_loss).all().item())
+    if all(component_finite.values()) and total_finite:
+        return
+    _write_detection_nonfinite_event(
+        output_dir=output_dir,
+        phase="FORWARD_LOSS",
+        epoch=epoch,
+        batch_index=batch_index,
+        targets=targets,
+        loss_values=loss_values,
+        total_loss=float(total_loss.detach().cpu()),
+        component_finite=component_finite,
+    )
+    raise FloatingPointError("Non-finite Faster R-CNN loss detected")
+
+
+def _write_detection_nonfinite_event(
+    *,
+    output_dir: Path,
+    phase: str,
+    epoch: int,
+    batch_index: int,
+    targets: list[dict[str, torch.Tensor]],
+    loss_values: dict[str, float],
+    total_loss: float,
+    component_finite: dict[str, bool] | None = None,
+    gradient_stats: dict[str, object] | None = None,
+    parameter_stats: dict[str, object] | None = None,
+) -> None:
+    event = {
+        "phase": phase,
+        "epoch": epoch,
+        "batch_index": batch_index,
+        "target_summaries": [_target_summary(target) for target in targets],
+        "loss_values": loss_values,
+        "total_loss": total_loss,
+        "component_finite": component_finite,
+        "gradient_stats": gradient_stats,
+        "parameter_stats": parameter_stats,
+        "amp_used": False,
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "detector_first_nonfinite_event.json").write_text(
+        json.dumps(event, indent=2) + "\n"
+    )
+    metrics_dir = Path("artifacts/metrics/delivery11")
+    metrics_dir.mkdir(parents=True, exist_ok=True)
+    (metrics_dir / "detector_first_nonfinite_event.json").write_text(
+        json.dumps(event, indent=2) + "\n"
+    )
+
+
+def _target_summary(target: dict[str, torch.Tensor]) -> dict[str, object]:
+    boxes = target["boxes"].detach().cpu()
+    labels = target["labels"].detach().cpu()
+    image_id = target["image_id"].detach().cpu().tolist()
+    return {
+        "image_id": image_id,
+        "box_count": int(len(boxes)),
+        "boxes_finite": bool(torch.isfinite(boxes).all().item()),
+        "labels": labels.tolist(),
+        "boxes": boxes[:20].tolist(),
+    }
+
+
+def _gradient_finite_stats(model: torch.nn.Module) -> dict[str, object]:
+    total_sq = 0.0
+    max_norm = 0.0
+    nonfinite_values = 0
+    examples: list[dict[str, object]] = []
+    for name, parameter in model.named_parameters():
+        if parameter.grad is None:
+            continue
+        gradient = parameter.grad.detach()
+        finite = torch.isfinite(gradient)
+        bad = int((~finite).sum().item())
+        if bad:
+            nonfinite_values += bad
+            if len(examples) < 10:
+                examples.append({"name": name, "nonfinite_values": bad, "numel": gradient.numel()})
+        if finite.any():
+            norm = float(torch.linalg.vector_norm(gradient[finite]).cpu())
+            total_sq += norm * norm
+            max_norm = max(max_norm, norm)
+    return {
+        "global_grad_norm": float(total_sq**0.5),
+        "max_grad_norm": max_norm,
+        "nonfinite_gradient_values": nonfinite_values,
+        "examples": examples,
+    }
+
+
+def _parameter_finite_stats(model: torch.nn.Module) -> dict[str, object]:
+    tensors = 0
+    nonfinite_tensors = 0
+    nonfinite_values = 0
+    total_values = 0
+    examples: list[dict[str, object]] = []
+    for name, tensor in model.state_dict().items():
+        if not torch.is_tensor(tensor) or not tensor.is_floating_point():
+            continue
+        tensors += 1
+        total_values += tensor.numel()
+        bad = int((~torch.isfinite(tensor)).sum().item())
+        if bad:
+            nonfinite_tensors += 1
+            nonfinite_values += bad
+            if len(examples) < 10:
+                examples.append({"name": name, "nonfinite_values": bad, "numel": tensor.numel()})
+    return {
+        "parameter_tensors": tensors,
+        "nonfinite_tensors": nonfinite_tensors,
+        "nonfinite_values": nonfinite_values,
+        "total_values": total_values,
+        "examples": examples,
+    }
 
 
 def _seed_everything(seed: int) -> None:
@@ -1262,20 +1453,31 @@ def _evaluate_detector(
 
     model.eval()
     tp = fp = missed = annotated = matched = 0
+    predictions = 0
+    image_index = 0
+    ap_predictions: list[tuple[str, float, BoundingBox]] = []
+    ap_ground_truth: dict[str, list[BoundingBox]] = {}
     with torch.no_grad():
         for images, targets in loader:
             outputs = model([image.to(device) for image in images])
             for output, target in zip(outputs, targets, strict=True):
+                image_key = f"image_{image_index}"
+                image_index += 1
+                output_boxes = [
+                    BoundingBox(*[float(value) for value in box.tolist()])
+                    for box in output["boxes"].cpu()
+                ]
+                output_scores = [float(score) for score in output["scores"].cpu()]
                 detections = [
                     DetectionPrediction(
                         detection_id=f"det_{idx}",
-                        bbox=BoundingBox(*[float(value) for value in box.tolist()]),
-                        confidence=float(score),
+                        bbox=box,
+                        confidence=score,
                     )
                     for idx, (box, score) in enumerate(
-                        zip(output["boxes"].cpu(), output["scores"].cpu(), strict=True)
+                        zip(output_boxes, output_scores, strict=True)
                     )
-                    if float(score) >= score_threshold
+                    if score >= score_threshold
                 ]
                 gt = [
                     GroundTruthBox(
@@ -1284,22 +1486,103 @@ def _evaluate_detector(
                     )
                     for idx, box in enumerate(target["boxes"].cpu())
                 ]
+                ap_predictions.extend(
+                    (image_key, score, box)
+                    for box, score in zip(output_boxes, output_scores, strict=True)
+                    if box.is_valid
+                )
+                ap_ground_truth[image_key] = [item.bbox for item in gt]
                 matches = match_detections(detections, gt, iou_threshold=0.5)
                 tp += sum(match.status == "TP_DETECTION" for match in matches)
                 fp += sum(match.status == "FP_DETECTION" for match in matches)
                 missed += sum(match.status == "MISSED_GT_WBC" for match in matches)
                 annotated += len(gt)
                 matched += sum(match.status == "TP_DETECTION" for match in matches)
+                predictions += len(detections)
     precision = _rate(tp, tp + fp)
     recall = _rate(tp, annotated)
+    map50 = _average_precision_for_iou(
+        predictions=ap_predictions,
+        ground_truth=ap_ground_truth,
+        iou_threshold=0.5,
+    )
+    map50_95 = float(
+        np.mean(
+            [
+                _average_precision_for_iou(
+                    predictions=ap_predictions,
+                    ground_truth=ap_ground_truth,
+                    iou_threshold=threshold,
+                )
+                for threshold in np.arange(0.5, 1.0, 0.05)
+            ]
+        )
+    )
     return {
         "precision": precision,
         "recall": recall,
         "annotated_wbcs": float(annotated),
+        "predictions": float(predictions),
         "matched": float(matched),
         "missed": float(missed),
         "false_positives": float(fp),
+        "map50": map50,
+        "map50_95": map50_95,
     }
+
+
+def _average_precision_for_iou(
+    *,
+    predictions: list[tuple[str, float, BoundingBox]],
+    ground_truth: dict[str, list[BoundingBox]],
+    iou_threshold: float,
+) -> float:
+    from leukocyte_hil.detection.matching import bbox_iou
+
+    total_gt = sum(len(items) for items in ground_truth.values())
+    if total_gt == 0:
+        return 0.0
+
+    matched_gt: dict[str, set[int]] = defaultdict(set)
+    tp_values: list[float] = []
+    fp_values: list[float] = []
+    for image_key, _, prediction_box in sorted(
+        predictions,
+        key=lambda item: item[1],
+        reverse=True,
+    ):
+        gt_boxes = ground_truth.get(image_key, [])
+        candidates = [
+            (bbox_iou(prediction_box, gt_box), gt_index)
+            for gt_index, gt_box in enumerate(gt_boxes)
+            if gt_index not in matched_gt[image_key]
+        ]
+        best_iou, best_index = max(candidates, key=lambda item: item[0], default=(0.0, -1))
+        if best_index >= 0 and best_iou >= iou_threshold:
+            matched_gt[image_key].add(best_index)
+            tp_values.append(1.0)
+            fp_values.append(0.0)
+        else:
+            tp_values.append(0.0)
+            fp_values.append(1.0)
+
+    if not tp_values:
+        return 0.0
+
+    tp_cumulative = np.cumsum(np.asarray(tp_values, dtype=np.float64))
+    fp_cumulative = np.cumsum(np.asarray(fp_values, dtype=np.float64))
+    recall = tp_cumulative / float(total_gt)
+    precision = tp_cumulative / np.maximum(tp_cumulative + fp_cumulative, 1e-12)
+    recall_points = np.concatenate(([0.0], recall, [1.0]))
+    precision_points = np.concatenate(([0.0], precision, [0.0]))
+    for index in range(len(precision_points) - 1, 0, -1):
+        precision_points[index - 1] = max(precision_points[index - 1], precision_points[index])
+    changed = np.where(recall_points[1:] != recall_points[:-1])[0]
+    return float(
+        np.sum(
+            (recall_points[changed + 1] - recall_points[changed]) * precision_points[changed + 1]
+        )
+    )
 
 
 def _freeze_detector_threshold(
