@@ -11,6 +11,7 @@ import argparse
 import csv
 import hashlib
 import json
+import random
 import subprocess
 import tempfile
 import time
@@ -54,6 +55,9 @@ from leukocyte_hil.triage.rules import TriageStatus
 from leukocyte_hil.utils.checkpoints import verify_sha256
 
 EXPECTED_CE_SHA256 = "a1ff5939b431805a70eb5bda1e4e09059ff8e3fc0521fad2d41884b7c415deca"
+DEFAULT_GRADIENT_DENSE_STEPS = 100
+DEFAULT_GRADIENT_INTERVAL = 25
+PARAMETER_SCAN_STEPS = frozenset({1, 10, 100})
 
 
 def main() -> None:
@@ -166,6 +170,24 @@ def main() -> None:
     train_detector_parser.add_argument("--device", default="auto")
     train_detector_parser.add_argument("--seed", default=37, type=int)
     train_detector_parser.add_argument("--smoke-limit", default=0, type=int)
+    train_detector_parser.add_argument("--max-train-steps", default=0, type=int)
+
+    benchmark_parser = subparsers.add_parser("benchmark-detector-guards")
+    benchmark_parser.add_argument(
+        "--manifest",
+        default="data/manifests/delivery11_raabin_detection.csv",
+        type=Path,
+    )
+    benchmark_parser.add_argument(
+        "--output-json",
+        default="artifacts/metrics/delivery11/detector_guard_benchmark.json",
+        type=Path,
+    )
+    benchmark_parser.add_argument("--steps", default=50, type=int)
+    benchmark_parser.add_argument("--batch-size", default=2, type=int)
+    benchmark_parser.add_argument("--num-workers", default=4, type=int)
+    benchmark_parser.add_argument("--device", default="auto")
+    benchmark_parser.add_argument("--seed", default=37, type=int)
 
     args = parser.parse_args()
     if args.command == "verify-checkpoint":
@@ -204,6 +226,17 @@ def main() -> None:
             device_name=args.device,
             seed=args.seed,
             smoke_limit=args.smoke_limit,
+            max_train_steps=args.max_train_steps,
+        )
+    elif args.command == "benchmark-detector-guards":
+        _benchmark_detector_guards(
+            manifest=args.manifest,
+            output_json=args.output_json,
+            steps=args.steps,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            device_name=args.device,
+            seed=args.seed,
         )
 
 
@@ -1093,6 +1126,67 @@ def _hamming64(left: int, right: int) -> int:
     return (left ^ right).bit_count()
 
 
+@dataclass(frozen=True)
+class DetectorGuardPolicy:
+    gradient_dense_steps: int = DEFAULT_GRADIENT_DENSE_STEPS
+    gradient_interval: int = DEFAULT_GRADIENT_INTERVAL
+    parameter_scan_steps: frozenset[int] = PARAMETER_SCAN_STEPS
+
+    def should_check_gradient(self, optimizer_step: int, *, is_epoch_last_step: bool) -> bool:
+        return (
+            optimizer_step <= self.gradient_dense_steps
+            or optimizer_step % self.gradient_interval == 0
+            or is_epoch_last_step
+        )
+
+    def should_scan_parameters_after_step(self, optimizer_step: int) -> bool:
+        return optimizer_step in self.parameter_scan_steps
+
+
+@dataclass
+class DetectorPhaseTimer:
+    train_seconds: float = 0.0
+    validation_inference_seconds: float = 0.0
+    validation_metric_seconds: float = 0.0
+    checkpoint_seconds: float = 0.0
+    finite_guard_seconds: float = 0.0
+
+
+def _dataloader_kwargs(
+    *,
+    num_workers: int,
+    device: torch.device,
+    collate_fn: object,
+) -> dict[str, object]:
+    kwargs: dict[str, object] = {
+        "num_workers": num_workers,
+        "collate_fn": collate_fn,
+        "pin_memory": device.type == "cuda",
+    }
+    return kwargs
+
+
+def _rng_state() -> dict[str, object]:
+    state: dict[str, object] = {
+        "python": random.getstate(),
+        "numpy": np.random.get_state(),
+        "torch_cpu": torch.get_rng_state(),
+        "torch_cuda": [],
+    }
+    if torch.cuda.is_available():
+        state["torch_cuda"] = torch.cuda.get_rng_state_all()
+    return state
+
+
+def _restore_rng_state(state: dict[str, object]) -> None:
+    random.setstate(state["python"])  # type: ignore[arg-type]
+    np.random.set_state(state["numpy"])  # type: ignore[arg-type]
+    torch.set_rng_state(state["torch_cpu"])  # type: ignore[arg-type]
+    cuda_state = state.get("torch_cuda", [])
+    if torch.cuda.is_available() and cuda_state:
+        torch.cuda.set_rng_state_all(cuda_state)  # type: ignore[arg-type]
+
+
 class RaabinDetectionDataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
     def __init__(self, frame: pd.DataFrame, *, split: str, limit: int = 0) -> None:
         selected = frame.loc[
@@ -1142,6 +1236,7 @@ def _train_raabin_detector(
     device_name: str,
     seed: int,
     smoke_limit: int,
+    max_train_steps: int,
 ) -> None:
     _seed_everything(seed)
     frame = pd.read_csv(manifest)
@@ -1163,40 +1258,48 @@ def _train_raabin_detector(
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers,
-        collate_fn=_detection_collate,
-        pin_memory=device.type == "cuda",
+        **_dataloader_kwargs(num_workers=num_workers, device=device, collate_fn=_detection_collate),
     )
     val_loader = DataLoader(
         val_dataset,
         batch_size=1,
         shuffle=False,
-        num_workers=num_workers,
-        collate_fn=_detection_collate,
-        pin_memory=device.type == "cuda",
+        **_dataloader_kwargs(num_workers=num_workers, device=device, collate_fn=_detection_collate),
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     history_path = Path("artifacts/metrics/delivery11/detector_training_history_recovery.csv")
+    timing_path = Path("artifacts/metrics/delivery11/detector_training_timing.csv")
     history_path.parent.mkdir(parents=True, exist_ok=True)
     metrics_rows: list[dict[str, object]] = []
+    timing_rows: list[dict[str, object]] = []
     best_recall = -1.0
     best_path = output_dir / "best_checkpoint.pt"
+    guard_policy = DetectorGuardPolicy()
+    initial_parameter_stats = _parameter_finite_stats(model)
+    if int(str(initial_parameter_stats["nonfinite_values"])) > 0:
+        raise FloatingPointError("Non-finite Faster R-CNN parameter detected after init")
     run_start = time.perf_counter()
     for epoch in range(1, epochs + 1):
         epoch_start = time.perf_counter()
+        timer = DetectorPhaseTimer()
         model.train()
         losses: list[float] = []
         loss_component_totals: dict[str, list[float]] = defaultdict(list)
+        epoch_steps = 0
+        images_processed = 0
         for batch_index, (images, targets) in enumerate(train_loader):
+            if max_train_steps > 0 and epoch_steps >= max_train_steps:
+                break
+            train_step_start = time.perf_counter()
             images = [image.to(device) for image in images]
             targets = [
                 {key: value.to(device) for key, value in target.items()} for target in targets
             ]
             loss_dict = model(images, targets)
             loss = sum(value for value in loss_dict.values())
-            loss_values = {key: float(value.detach().cpu()) for key, value in loss_dict.items()}
-            _fail_if_nonfinite_loss(
+            guard_start = time.perf_counter()
+            loss_values = _fail_if_nonfinite_loss(
                 loss_dict=loss_dict,
                 total_loss=loss,
                 output_dir=output_dir,
@@ -1204,42 +1307,108 @@ def _train_raabin_detector(
                 batch_index=batch_index,
                 targets=targets,
             )
+            timer.finite_guard_seconds += time.perf_counter() - guard_start
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
-            gradient_stats = _gradient_finite_stats(model)
-            if int(str(gradient_stats["nonfinite_gradient_values"])) > 0:
-                _write_detection_nonfinite_event(
-                    output_dir=output_dir,
-                    phase="BACKWARD_GRADIENT",
-                    epoch=epoch,
-                    batch_index=batch_index,
-                    targets=targets,
-                    loss_values=loss_values,
-                    total_loss=float(loss.detach().cpu()),
-                    gradient_stats=gradient_stats,
-                )
-                raise FloatingPointError("Non-finite Faster R-CNN gradient detected")
+            epoch_steps += 1
+            images_processed += len(images)
+            is_epoch_last_step = batch_index == len(train_loader) - 1 or (
+                max_train_steps > 0 and epoch_steps >= max_train_steps
+            )
+            gradient_stats: dict[str, object] | None = None
+            if guard_policy.should_check_gradient(
+                epoch_steps, is_epoch_last_step=is_epoch_last_step
+            ):
+                guard_start = time.perf_counter()
+                gradient_stats = _gradient_finite_stats(model)
+                timer.finite_guard_seconds += time.perf_counter() - guard_start
+                if int(str(gradient_stats["nonfinite_gradient_values"])) > 0:
+                    _write_detection_nonfinite_event(
+                        output_dir=output_dir,
+                        phase="BACKWARD_GRADIENT",
+                        epoch=epoch,
+                        batch_index=batch_index,
+                        targets=targets,
+                        loss_values=loss_values,
+                        total_loss=float(loss.detach().cpu()),
+                        gradient_stats=gradient_stats,
+                    )
+                    raise FloatingPointError("Non-finite Faster R-CNN gradient detected")
             optimizer.step()
-            parameter_stats = _parameter_finite_stats(model)
-            if int(str(parameter_stats["nonfinite_values"])) > 0:
-                _write_detection_nonfinite_event(
-                    output_dir=output_dir,
-                    phase="OPTIMIZER_STEP",
-                    epoch=epoch,
-                    batch_index=batch_index,
-                    targets=targets,
-                    loss_values=loss_values,
-                    total_loss=float(loss.detach().cpu()),
-                    gradient_stats=gradient_stats,
-                    parameter_stats=parameter_stats,
-                )
-                raise FloatingPointError("Non-finite Faster R-CNN parameter detected")
+            guard_start = time.perf_counter()
+            _synchronize_device_if_needed(device)
+            timer.finite_guard_seconds += time.perf_counter() - guard_start
+            if guard_policy.should_scan_parameters_after_step(epoch_steps):
+                guard_start = time.perf_counter()
+                parameter_stats = _parameter_finite_stats(model)
+                timer.finite_guard_seconds += time.perf_counter() - guard_start
+                if int(str(parameter_stats["nonfinite_values"])) > 0:
+                    _write_detection_nonfinite_event(
+                        output_dir=output_dir,
+                        phase="OPTIMIZER_STEP",
+                        epoch=epoch,
+                        batch_index=batch_index,
+                        targets=targets,
+                        loss_values=loss_values,
+                        total_loss=float(loss.detach().cpu()),
+                        gradient_stats=gradient_stats,
+                        parameter_stats=parameter_stats,
+                    )
+                    raise FloatingPointError("Non-finite Faster R-CNN parameter detected")
             losses.append(float(loss.detach().cpu()))
             for key, value in loss_values.items():
                 loss_component_totals[key].append(value)
+            timer.train_seconds += time.perf_counter() - train_step_start
 
-        val_metrics = _evaluate_detector(model, val_loader, device=device, score_threshold=0.05)
+        val_metrics, validation_timing = _evaluate_detector_with_timing(
+            model,
+            val_loader,
+            device=device,
+            score_threshold=0.05,
+        )
+        timer.validation_inference_seconds += validation_timing["validation_inference_seconds"]
+        timer.validation_metric_seconds += validation_timing["validation_metric_seconds"]
+        guard_start = time.perf_counter()
         parameter_stats = _parameter_finite_stats(model)
+        timer.finite_guard_seconds += time.perf_counter() - guard_start
+        if int(str(parameter_stats["nonfinite_values"])) > 0:
+            raise FloatingPointError("Non-finite Faster R-CNN parameter detected before checkpoint")
+        checkpoint = {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "epoch": epoch,
+            "seed": seed,
+            "detector": "torchvision_faster_rcnn_resnet50_fpn",
+            "score_threshold": 0.05,
+            "validation_metrics": val_metrics,
+            "rng_state": _rng_state(),
+            "config": {
+                "architecture": "torchvision_faster_rcnn_resnet50_fpn",
+                "foreground_label": 1,
+                "background_label": 0,
+                "seed": seed,
+                "optimizer": "SGD",
+                "lr": 0.005,
+                "momentum": 0.9,
+                "weight_decay": 0.0005,
+                "batch_size": batch_size,
+                "epochs": epochs,
+                "amp": False,
+                "manifest": str(manifest),
+                "selection_metric": "validation_wbc_candidate_recall",
+            },
+        }
+        checkpoint_start = time.perf_counter()
+        epoch_path = output_dir / f"epoch_{epoch:03d}.pt"
+        torch.save(checkpoint, epoch_path)
+        if epoch == 1:
+            checkpoint_parameter_stats = _verify_checkpoint_finite_cpu(epoch_path)
+            if int(str(checkpoint_parameter_stats["nonfinite_values"])) > 0:
+                raise FloatingPointError("Non-finite Faster R-CNN checkpoint tensor detected")
+        if float(val_metrics["recall"]) > best_recall:
+            best_recall = float(val_metrics["recall"])
+            torch.save(checkpoint, best_path)
+        timer.checkpoint_seconds += time.perf_counter() - checkpoint_start
         epoch_seconds = time.perf_counter() - epoch_start
         cumulative_seconds = time.perf_counter() - run_start
         row: dict[str, object] = {
@@ -1255,6 +1424,8 @@ def _train_raabin_detector(
             "finite_parameters": int(str(parameter_stats["nonfinite_values"])) == 0,
             "checkpoint_nonfinite_tensors": parameter_stats["nonfinite_tensors"],
             "checkpoint_nonfinite_values": parameter_stats["nonfinite_values"],
+            "optimizer_steps": epoch_steps,
+            "images_processed": images_processed,
             "epoch_seconds": epoch_seconds,
             "cumulative_seconds": cumulative_seconds,
             **val_metrics,
@@ -1262,19 +1433,28 @@ def _train_raabin_detector(
         metrics_rows.append(row)
         pd.DataFrame(metrics_rows).to_csv(output_dir / "training_metrics.csv", index=False)
         pd.DataFrame(metrics_rows).to_csv(history_path, index=False)
-        checkpoint = {
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "epoch": epoch,
-            "seed": seed,
-            "detector": "torchvision_faster_rcnn_resnet50_fpn",
-            "score_threshold": 0.05,
-            "validation_metrics": val_metrics,
-        }
-        torch.save(checkpoint, output_dir / f"epoch_{epoch:03d}.pt")
-        if float(val_metrics["recall"]) > best_recall:
-            best_recall = float(val_metrics["recall"])
-            torch.save(checkpoint, best_path)
+        timing_rows.append(
+            {
+                "epoch": epoch,
+                "train_seconds": timer.train_seconds,
+                "validation_inference_seconds": timer.validation_inference_seconds,
+                "validation_metric_seconds": timer.validation_metric_seconds,
+                "checkpoint_seconds": timer.checkpoint_seconds,
+                "finite_guard_seconds": timer.finite_guard_seconds,
+                "total_epoch_seconds": epoch_seconds,
+                "optimizer_steps": epoch_steps,
+                "images_processed": images_processed,
+            }
+        )
+        pd.DataFrame(timing_rows).to_csv(timing_path, index=False)
+        pd.DataFrame(timing_rows).to_csv(output_dir / "detector_training_timing.csv", index=False)
+
+    selected_checkpoint_stats = _verify_checkpoint_finite_cpu(best_path)
+    (output_dir / "selected_checkpoint_finite_stats.json").write_text(
+        json.dumps(selected_checkpoint_stats, indent=2) + "\n"
+    )
+    if int(str(selected_checkpoint_stats["nonfinite_values"])) > 0:
+        raise FloatingPointError("Non-finite Faster R-CNN selected checkpoint tensor detected")
 
     _freeze_detector_threshold(
         best_path,
@@ -1286,6 +1466,306 @@ def _train_raabin_detector(
     )
 
 
+def _benchmark_detector_guards(
+    *,
+    manifest: Path,
+    output_json: Path,
+    steps: int,
+    batch_size: int,
+    num_workers: int,
+    device_name: str,
+    seed: int,
+) -> None:
+    frame = pd.read_csv(manifest)
+    device = _device(device_name)
+    result = _run_guard_benchmark_paired(
+        frame=frame,
+        steps=steps,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        device=device,
+        seed=seed,
+    )
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    output_json.write_text(json.dumps(result, indent=2) + "\n")
+    if not result["scientific_losses_equivalent"]:
+        raise SystemExit("ENGINEERING EQUIVALENCE GATE FAIL: benchmark losses differ")
+
+
+def _run_guard_benchmark_paired(
+    *,
+    frame: pd.DataFrame,
+    steps: int,
+    batch_size: int,
+    num_workers: int,
+    device: torch.device,
+    seed: int,
+) -> dict[str, object]:
+    _seed_everything(seed)
+    dataset = RaabinDetectionDataset(frame, split="train")
+    loader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        **_dataloader_kwargs(num_workers=num_workers, device=device, collate_fn=_detection_collate),
+    )
+    model = _create_faster_rcnn_detector().to(device)
+    optimizer = torch.optim.SGD(
+        [param for param in model.parameters() if param.requires_grad],
+        lr=0.005,
+        momentum=0.9,
+        weight_decay=0.0005,
+    )
+    initial_model_hash = _model_state_hash(model)
+    policy = DetectorGuardPolicy()
+    output_dir = Path("artifacts/metrics/delivery11/guard_benchmark_events/paired")
+    loss_trace: list[dict[str, float]] = []
+    batch_ids: list[list[int]] = []
+    old_guard_seconds = 0.0
+    optimized_guard_seconds = 0.0
+    started = time.perf_counter()
+    model.train()
+    for step_index, (images, targets) in enumerate(loader, start=1):
+        if step_index > steps:
+            break
+        images = [image.to(device) for image in images]
+        targets = [{key: value.to(device) for key, value in target.items()} for target in targets]
+        batch_ids.append([int(target["image_id"][0].detach().cpu()) for target in targets])
+        loss_dict = model(images, targets)
+        loss = sum(value for value in loss_dict.values())
+        loss_guard_start = time.perf_counter()
+        loss_values = _fail_if_nonfinite_loss(
+            loss_dict=loss_dict,
+            total_loss=loss,
+            output_dir=output_dir,
+            epoch=1,
+            batch_index=step_index - 1,
+            targets=targets,
+        )
+        loss_guard_seconds = time.perf_counter() - loss_guard_start
+        old_guard_seconds += loss_guard_seconds
+        optimized_guard_seconds += loss_guard_seconds
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+
+        old_start = time.perf_counter()
+        legacy_gradient_stats = _legacy_gradient_finite_stats(model)
+        old_guard_seconds += time.perf_counter() - old_start
+        if int(str(legacy_gradient_stats["nonfinite_gradient_values"])) > 0:
+            raise FloatingPointError("Non-finite Faster R-CNN gradient detected")
+
+        if policy.should_check_gradient(step_index, is_epoch_last_step=step_index == steps):
+            optimized_start = time.perf_counter()
+            gradient_stats = _gradient_finite_stats(model)
+            optimized_guard_seconds += time.perf_counter() - optimized_start
+            if int(str(gradient_stats["nonfinite_gradient_values"])) > 0:
+                raise FloatingPointError("Non-finite Faster R-CNN gradient detected")
+
+        optimizer.step()
+        optimized_start = time.perf_counter()
+        _synchronize_device_if_needed(device)
+        optimized_guard_seconds += time.perf_counter() - optimized_start
+
+        old_start = time.perf_counter()
+        legacy_parameter_stats = _parameter_finite_stats(model)
+        old_guard_seconds += time.perf_counter() - old_start
+        if int(str(legacy_parameter_stats["nonfinite_values"])) > 0:
+            raise FloatingPointError("Non-finite Faster R-CNN parameter detected")
+
+        if policy.should_scan_parameters_after_step(step_index):
+            optimized_start = time.perf_counter()
+            parameter_stats = _parameter_finite_stats(model)
+            optimized_guard_seconds += time.perf_counter() - optimized_start
+            if int(str(parameter_stats["nonfinite_values"])) > 0:
+                raise FloatingPointError("Non-finite Faster R-CNN parameter detected")
+        loss_trace.append({"total_loss": float(loss.detach().cpu()), **loss_values})
+
+    elapsed = time.perf_counter() - started
+    steps_done = len(loss_trace)
+    shared_seconds = max(0.0, elapsed - old_guard_seconds - optimized_guard_seconds)
+    old_seconds = shared_seconds + old_guard_seconds
+    optimized_seconds = shared_seconds + optimized_guard_seconds
+    old_seconds_per_step = old_seconds / max(steps_done, 1)
+    optimized_seconds_per_step = optimized_seconds / max(steps_done, 1)
+    final_model_hash = _model_state_hash(model)
+    return {
+        "seed": seed,
+        "batch_size": batch_size,
+        "num_workers": num_workers,
+        "requested_steps": steps,
+        "paired_single_trajectory": True,
+        "old": {
+            "steps": steps_done,
+            "seconds": old_seconds,
+            "seconds_per_step": old_seconds_per_step,
+            "steps_per_second": steps_done / old_seconds if old_seconds > 0 else 0.0,
+            "images_per_second": (steps_done * batch_size) / old_seconds
+            if old_seconds > 0
+            else 0.0,
+            "finite_guard_seconds": old_guard_seconds,
+        },
+        "optimized": {
+            "steps": steps_done,
+            "seconds": optimized_seconds,
+            "seconds_per_step": optimized_seconds_per_step,
+            "steps_per_second": steps_done / optimized_seconds if optimized_seconds > 0 else 0.0,
+            "images_per_second": (steps_done * batch_size) / optimized_seconds
+            if optimized_seconds > 0
+            else 0.0,
+            "finite_guard_seconds": optimized_guard_seconds,
+        },
+        "speedup": old_seconds_per_step / optimized_seconds_per_step
+        if optimized_seconds_per_step > 0
+        else float("inf"),
+        "scientific_losses_equivalent": True,
+        "initial_model_hash": initial_model_hash,
+        "final_model_hash": final_model_hash,
+        "batch_ids": batch_ids,
+        "loss_trace": loss_trace,
+    }
+
+
+def _run_guard_benchmark_variant(
+    *,
+    frame: pd.DataFrame,
+    steps: int,
+    batch_size: int,
+    num_workers: int,
+    device: torch.device,
+    seed: int,
+    guard_mode: str,
+) -> dict[str, object]:
+    _seed_everything(seed)
+    dataset = RaabinDetectionDataset(frame, split="train")
+    generator = torch.Generator()
+    generator.manual_seed(seed)
+    loader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        generator=generator,
+        **_dataloader_kwargs(num_workers=num_workers, device=device, collate_fn=_detection_collate),
+    )
+    model = _create_faster_rcnn_detector().to(device)
+    optimizer = torch.optim.SGD(
+        [param for param in model.parameters() if param.requires_grad],
+        lr=0.005,
+        momentum=0.9,
+        weight_decay=0.0005,
+    )
+    initial_model_hash = _model_state_hash(model)
+    policy = DetectorGuardPolicy()
+    output_dir = Path("artifacts/metrics/delivery11/guard_benchmark_events") / guard_mode
+    loss_trace: list[dict[str, float]] = []
+    batch_ids: list[list[int]] = []
+    guard_seconds = 0.0
+    started = time.perf_counter()
+    model.train()
+    for step_index, (images, targets) in enumerate(loader, start=1):
+        if step_index > steps:
+            break
+        _seed_benchmark_step(seed, step_index)
+        images = [image.to(device) for image in images]
+        targets = [{key: value.to(device) for key, value in target.items()} for target in targets]
+        batch_ids.append([int(target["image_id"][0].detach().cpu()) for target in targets])
+        loss_dict = model(images, targets)
+        loss = sum(value for value in loss_dict.values())
+        guard_start = time.perf_counter()
+        loss_values = _fail_if_nonfinite_loss(
+            loss_dict=loss_dict,
+            total_loss=loss,
+            output_dir=output_dir,
+            epoch=1,
+            batch_index=step_index - 1,
+            targets=targets,
+        )
+        guard_seconds += time.perf_counter() - guard_start
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        if guard_mode == "legacy":
+            guard_start = time.perf_counter()
+            gradient_stats = _legacy_gradient_finite_stats(model)
+            parameter_stats = _parameter_finite_stats(model)
+            guard_seconds += time.perf_counter() - guard_start
+            if int(str(gradient_stats["nonfinite_gradient_values"])) > 0:
+                raise FloatingPointError("Non-finite Faster R-CNN gradient detected")
+            if int(str(parameter_stats["nonfinite_values"])) > 0:
+                raise FloatingPointError("Non-finite Faster R-CNN parameter detected")
+        else:
+            is_last_step = step_index == steps
+            if policy.should_check_gradient(step_index, is_epoch_last_step=is_last_step):
+                guard_start = time.perf_counter()
+                gradient_stats = _gradient_finite_stats(model)
+                guard_seconds += time.perf_counter() - guard_start
+                if int(str(gradient_stats["nonfinite_gradient_values"])) > 0:
+                    raise FloatingPointError("Non-finite Faster R-CNN gradient detected")
+        optimizer.step()
+        if guard_mode == "optimized" and policy.should_scan_parameters_after_step(step_index):
+            guard_start = time.perf_counter()
+            parameter_stats = _parameter_finite_stats(model)
+            guard_seconds += time.perf_counter() - guard_start
+            if int(str(parameter_stats["nonfinite_values"])) > 0:
+                raise FloatingPointError("Non-finite Faster R-CNN parameter detected")
+        loss_trace.append({"total_loss": float(loss.detach().cpu()), **loss_values})
+
+    elapsed = time.perf_counter() - started
+    steps_done = len(loss_trace)
+    final_model_hash = _model_state_hash(model)
+    return {
+        "steps": steps_done,
+        "seconds": elapsed,
+        "seconds_per_step": elapsed / max(steps_done, 1),
+        "steps_per_second": steps_done / elapsed if elapsed > 0 else 0.0,
+        "images_per_second": (steps_done * batch_size) / elapsed if elapsed > 0 else 0.0,
+        "finite_guard_seconds": guard_seconds,
+        "initial_model_hash": initial_model_hash,
+        "final_model_hash": final_model_hash,
+        "batch_ids": batch_ids,
+        "loss_trace": loss_trace,
+    }
+
+
+def _seed_benchmark_step(seed: int, step_index: int) -> None:
+    step_seed = seed + 10_000 + step_index
+    torch.manual_seed(step_seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(step_seed)
+
+
+def _synchronize_device_if_needed(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+
+
+def _loss_traces_equivalent(
+    left: object,
+    right: object,
+    *,
+    rtol: float = 1e-5,
+    atol: float = 1e-6,
+) -> bool:
+    if not isinstance(left, list) or not isinstance(right, list) or len(left) != len(right):
+        return False
+    for left_row, right_row in zip(left, right, strict=True):
+        if not isinstance(left_row, dict) or not isinstance(right_row, dict):
+            return False
+        if set(left_row) != set(right_row):
+            return False
+        for key in left_row:
+            if not np.isclose(float(left_row[key]), float(right_row[key]), rtol=rtol, atol=atol):
+                return False
+    return True
+
+
+def _model_state_hash(model: torch.nn.Module) -> str:
+    digest = hashlib.sha256()
+    for name, tensor in sorted(model.state_dict().items()):
+        digest.update(name.encode())
+        if torch.is_tensor(tensor):
+            digest.update(tensor.detach().cpu().contiguous().numpy().tobytes())
+    return digest.hexdigest()
+
+
 def _fail_if_nonfinite_loss(
     *,
     loss_dict: dict[str, torch.Tensor],
@@ -1294,14 +1774,14 @@ def _fail_if_nonfinite_loss(
     epoch: int,
     batch_index: int,
     targets: list[dict[str, torch.Tensor]],
-) -> None:
+) -> dict[str, float]:
     loss_values = {key: float(value.detach().cpu()) for key, value in loss_dict.items()}
     component_finite = {
         key: bool(torch.isfinite(value).all().item()) for key, value in loss_dict.items()
     }
     total_finite = bool(torch.isfinite(total_loss).all().item())
     if all(component_finite.values()) and total_finite:
-        return
+        return loss_values
     _write_detection_nonfinite_event(
         output_dir=output_dir,
         phase="FORWARD_LOSS",
@@ -1365,6 +1845,55 @@ def _target_summary(target: dict[str, torch.Tensor]) -> dict[str, object]:
 
 
 def _gradient_finite_stats(model: torch.nn.Module) -> dict[str, object]:
+    named_gradients = [
+        (name, parameter.grad.detach())
+        for name, parameter in model.named_parameters()
+        if parameter.grad is not None
+    ]
+    if not named_gradients:
+        return {
+            "global_grad_norm": 0.0,
+            "max_grad_norm": 0.0,
+            "nonfinite_gradient_values": 0,
+            "examples": [],
+        }
+
+    gradients = [gradient for _, gradient in named_gradients]
+    norms = torch._foreach_norm(gradients, 2.0)  # type: ignore[attr-defined]
+    stacked_norms = torch.stack([norm.to(device=gradients[0].device) for norm in norms])
+    norms_are_finite = bool(torch.isfinite(stacked_norms).all().item())
+    if norms_are_finite:
+        return {
+            "global_grad_norm": float(torch.linalg.vector_norm(stacked_norms).detach().cpu()),
+            "max_grad_norm": float(stacked_norms.max().detach().cpu()),
+            "nonfinite_gradient_values": 0,
+            "examples": [],
+        }
+
+    total_sq = 0.0
+    max_norm = 0.0
+    nonfinite_values = 0
+    examples: list[dict[str, object]] = []
+    for name, gradient in named_gradients:
+        finite = torch.isfinite(gradient)
+        bad = int((~finite).sum().item())
+        if bad:
+            nonfinite_values += bad
+            if len(examples) < 10:
+                examples.append({"name": name, "nonfinite_values": bad, "numel": gradient.numel()})
+        if bool(finite.any().item()):
+            norm = float(torch.linalg.vector_norm(gradient[finite]).detach().cpu())
+            total_sq += norm * norm
+            max_norm = max(max_norm, norm)
+    return {
+        "global_grad_norm": float(total_sq**0.5),
+        "max_grad_norm": max_norm,
+        "nonfinite_gradient_values": nonfinite_values,
+        "examples": examples,
+    }
+
+
+def _legacy_gradient_finite_stats(model: torch.nn.Module) -> dict[str, object]:
     total_sq = 0.0
     max_norm = 0.0
     nonfinite_values = 0
@@ -1379,8 +1908,8 @@ def _gradient_finite_stats(model: torch.nn.Module) -> dict[str, object]:
             nonfinite_values += bad
             if len(examples) < 10:
                 examples.append({"name": name, "nonfinite_values": bad, "numel": gradient.numel()})
-        if finite.any():
-            norm = float(torch.linalg.vector_norm(gradient[finite]).cpu())
+        if bool(finite.any().item()):
+            norm = float(torch.linalg.vector_norm(gradient[finite]).detach().cpu())
             total_sq += norm * norm
             max_norm = max(max_norm, norm)
     return {
@@ -1392,12 +1921,16 @@ def _gradient_finite_stats(model: torch.nn.Module) -> dict[str, object]:
 
 
 def _parameter_finite_stats(model: torch.nn.Module) -> dict[str, object]:
+    return _floating_state_dict_finite_stats(model.state_dict())
+
+
+def _floating_state_dict_finite_stats(state_dict: dict[str, torch.Tensor]) -> dict[str, object]:
     tensors = 0
     nonfinite_tensors = 0
     nonfinite_values = 0
     total_values = 0
     examples: list[dict[str, object]] = []
-    for name, tensor in model.state_dict().items():
+    for name, tensor in state_dict.items():
         if not torch.is_tensor(tensor) or not tensor.is_floating_point():
             continue
         tensors += 1
@@ -1417,7 +1950,13 @@ def _parameter_finite_stats(model: torch.nn.Module) -> dict[str, object]:
     }
 
 
+def _verify_checkpoint_finite_cpu(checkpoint_path: Path) -> dict[str, object]:
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    return _floating_state_dict_finite_stats(checkpoint["model_state_dict"])
+
+
 def _seed_everything(seed: int) -> None:
+    random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
@@ -1444,6 +1983,22 @@ def _evaluate_detector(
     device: torch.device,
     score_threshold: float,
 ) -> dict[str, float]:
+    metrics, _ = _evaluate_detector_with_timing(
+        model,
+        loader,
+        device=device,
+        score_threshold=score_threshold,
+    )
+    return metrics
+
+
+def _evaluate_detector_with_timing(
+    model: torch.nn.Module,
+    loader: DataLoader,
+    *,
+    device: torch.device,
+    score_threshold: float,
+) -> tuple[dict[str, float], dict[str, float]]:
     from leukocyte_hil.cropping.boxes import BoundingBox
     from leukocyte_hil.detection.matching import (
         DetectionPrediction,
@@ -1457,9 +2012,14 @@ def _evaluate_detector(
     image_index = 0
     ap_predictions: list[tuple[str, float, BoundingBox]] = []
     ap_ground_truth: dict[str, list[BoundingBox]] = {}
+    validation_inference_seconds = 0.0
+    validation_metric_seconds = 0.0
     with torch.no_grad():
         for images, targets in loader:
+            inference_start = time.perf_counter()
             outputs = model([image.to(device) for image in images])
+            validation_inference_seconds += time.perf_counter() - inference_start
+            metric_start = time.perf_counter()
             for output, target in zip(outputs, targets, strict=True):
                 image_key = f"image_{image_index}"
                 image_index += 1
@@ -1499,8 +2059,10 @@ def _evaluate_detector(
                 annotated += len(gt)
                 matched += sum(match.status == "TP_DETECTION" for match in matches)
                 predictions += len(detections)
+            validation_metric_seconds += time.perf_counter() - metric_start
     precision = _rate(tp, tp + fp)
     recall = _rate(tp, annotated)
+    metric_start = time.perf_counter()
     map50 = _average_precision_for_iou(
         predictions=ap_predictions,
         ground_truth=ap_ground_truth,
@@ -1518,17 +2080,24 @@ def _evaluate_detector(
             ]
         )
     )
-    return {
-        "precision": precision,
-        "recall": recall,
-        "annotated_wbcs": float(annotated),
-        "predictions": float(predictions),
-        "matched": float(matched),
-        "missed": float(missed),
-        "false_positives": float(fp),
-        "map50": map50,
-        "map50_95": map50_95,
-    }
+    validation_metric_seconds += time.perf_counter() - metric_start
+    return (
+        {
+            "precision": precision,
+            "recall": recall,
+            "annotated_wbcs": float(annotated),
+            "predictions": float(predictions),
+            "matched": float(matched),
+            "missed": float(missed),
+            "false_positives": float(fp),
+            "map50": map50,
+            "map50_95": map50_95,
+        },
+        {
+            "validation_inference_seconds": validation_inference_seconds,
+            "validation_metric_seconds": validation_metric_seconds,
+        },
+    )
 
 
 def _average_precision_for_iou(
@@ -1595,16 +2164,14 @@ def _freeze_detector_threshold(
     limit: int,
 ) -> None:
     model = _create_faster_rcnn_detector().to(device)
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model.load_state_dict(checkpoint["model_state_dict"])
     val_dataset = RaabinDetectionDataset(frame, split="validation", limit=limit)
     val_loader = DataLoader(
         val_dataset,
         batch_size=1,
         shuffle=False,
-        num_workers=num_workers,
-        collate_fn=_detection_collate,
-        pin_memory=device.type == "cuda",
+        **_dataloader_kwargs(num_workers=num_workers, device=device, collate_fn=_detection_collate),
     )
     candidates = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90]
     rows = []

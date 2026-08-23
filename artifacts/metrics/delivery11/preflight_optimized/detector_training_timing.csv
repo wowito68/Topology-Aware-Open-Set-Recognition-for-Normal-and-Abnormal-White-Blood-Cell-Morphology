@@ -1,0 +1,2 @@
+epoch,train_seconds,validation_inference_seconds,validation_metric_seconds,checkpoint_seconds,finite_guard_seconds,total_epoch_seconds,optimizer_steps,images_processed
+1,44.15975106006954,5.823930909013143,0.009203401015838608,1.1597968220012262,13.176020579907345,66.67498077999335,100,200

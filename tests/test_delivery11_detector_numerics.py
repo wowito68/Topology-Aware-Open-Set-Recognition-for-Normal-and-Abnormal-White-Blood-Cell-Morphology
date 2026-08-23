@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import importlib.util
+import random
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 import torch
@@ -78,6 +80,46 @@ def test_gradient_finite_stats_counts_nonfinite_gradients() -> None:
     assert stats["global_grad_norm"] > 0.0
 
 
+def test_detector_guard_policy_uses_tiered_cadence() -> None:
+    module = _load_delivery11_module()
+    policy = module.DetectorGuardPolicy()
+
+    assert policy.should_check_gradient(1, is_epoch_last_step=False)
+    assert policy.should_check_gradient(100, is_epoch_last_step=False)
+    assert not policy.should_check_gradient(101, is_epoch_last_step=False)
+    assert policy.should_check_gradient(125, is_epoch_last_step=False)
+    assert policy.should_check_gradient(101, is_epoch_last_step=True)
+    assert policy.should_scan_parameters_after_step(1)
+    assert policy.should_scan_parameters_after_step(10)
+    assert policy.should_scan_parameters_after_step(100)
+    assert not policy.should_scan_parameters_after_step(101)
+
+
+def test_numerical_diagnostics_do_not_mutate_gradients_or_parameters() -> None:
+    module = _load_delivery11_module()
+    model = torch.nn.Linear(3, 2)
+    inputs = torch.randn(4, 3)
+    targets = torch.randn(4, 2)
+    loss = torch.nn.functional.mse_loss(model(inputs), targets)
+    loss.backward()
+    gradients_before = {
+        name: parameter.grad.detach().clone()
+        for name, parameter in model.named_parameters()
+        if parameter.grad is not None
+    }
+    parameters_before = {
+        name: parameter.detach().clone() for name, parameter in model.named_parameters()
+    }
+
+    module._gradient_finite_stats(model)
+    module._parameter_finite_stats(model)
+
+    for name, parameter in model.named_parameters():
+        assert torch.equal(parameter.detach(), parameters_before[name])
+        assert parameter.grad is not None
+        assert torch.equal(parameter.grad.detach(), gradients_before[name])
+
+
 def test_parameter_finite_stats_counts_nonfinite_parameters() -> None:
     module = _load_delivery11_module()
     model = torch.nn.Linear(2, 1)
@@ -90,6 +132,95 @@ def test_parameter_finite_stats_counts_nonfinite_parameters() -> None:
     assert stats["nonfinite_tensors"] == 1
     assert stats["nonfinite_values"] == 1
     assert stats["examples"][0]["name"] == "bias"
+
+
+def test_checkpoint_finite_validation_reads_model_state_dict(tmp_path: Path) -> None:
+    module = _load_delivery11_module()
+    checkpoint_path = tmp_path / "checkpoint.pt"
+    torch.save(
+        {
+            "model_state_dict": {
+                "finite": torch.tensor([1.0, 2.0]),
+                "bad": torch.tensor([float("nan")]),
+                "integer_buffer": torch.tensor([1], dtype=torch.int64),
+            }
+        },
+        checkpoint_path,
+    )
+
+    stats = module._verify_checkpoint_finite_cpu(checkpoint_path)
+
+    assert stats["parameter_tensors"] == 2
+    assert stats["nonfinite_tensors"] == 1
+    assert stats["nonfinite_values"] == 1
+
+
+def test_rng_state_round_trips_python_numpy_and_torch() -> None:
+    module = _load_delivery11_module()
+    module._seed_everything(37)
+    state = module._rng_state()
+    expected_python = random.random()
+    expected_numpy = float(np.random.rand())
+    expected_torch = torch.rand(3)
+
+    random.random()
+    np.random.rand()
+    torch.rand(3)
+    module._restore_rng_state(state)
+
+    assert random.random() == expected_python
+    assert float(np.random.rand()) == expected_numpy
+    assert torch.equal(torch.rand(3), expected_torch)
+
+
+def test_phase_timing_schema_contains_required_fields() -> None:
+    module = _load_delivery11_module()
+    timer = module.DetectorPhaseTimer()
+
+    assert set(timer.__dict__) == {
+        "train_seconds",
+        "validation_inference_seconds",
+        "validation_metric_seconds",
+        "checkpoint_seconds",
+        "finite_guard_seconds",
+    }
+
+
+def test_dataloader_worker_kwargs_do_not_change_sample_contents(
+    tmp_path: Path,
+) -> None:
+    module = _load_delivery11_module()
+    image_path = tmp_path / "field.jpg"
+    Image.new("RGB", (16, 12), color=(32, 64, 96)).save(image_path)
+    frame = pd.DataFrame(
+        [
+            {
+                "split": "train",
+                "detector_eligible": True,
+                "image_id": "film_a/image_001",
+                "image_path": str(image_path),
+                "x_min": 2.0,
+                "y_min": 3.0,
+                "x_max": 11.0,
+                "y_max": 10.0,
+            }
+        ]
+    )
+    dataset = module.RaabinDetectionDataset(frame, split="train")
+    baseline_image, baseline_target = dataset[0]
+    kwargs = module._dataloader_kwargs(
+        num_workers=4,
+        device=torch.device("cuda"),
+        collate_fn=module._detection_collate,
+    )
+
+    repeated_image, repeated_target = dataset[0]
+
+    assert "persistent_workers" not in kwargs
+    assert "prefetch_factor" not in kwargs
+    assert torch.equal(repeated_image, baseline_image)
+    assert torch.equal(repeated_target["boxes"], baseline_target["boxes"])
+    assert torch.equal(repeated_target["labels"], baseline_target["labels"])
 
 
 def test_raabin_detection_dataset_uses_finite_xyxy_targets(
