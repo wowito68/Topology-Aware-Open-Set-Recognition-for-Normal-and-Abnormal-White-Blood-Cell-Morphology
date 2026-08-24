@@ -1,0 +1,96 @@
+{
+  "project": "Human-in-the-Loop Open-Set Leukocyte Morphology Analysis",
+  "delivery": "Delivery 1.1",
+  "detector_training_status": "INCOMPLETE — NUMERICAL FAILURE IN EPOCH 3",
+  "valid_checkpoints": [
+    "epoch_001.pt",
+    "epoch_002.pt"
+  ],
+  "best_available_checkpoint_by_validation_recall": {
+    "checkpoint": "best_checkpoint.pt",
+    "epoch": 1,
+    "validation_recall": 0.986740917528507,
+    "map50": 0.9483276169045958,
+    "map50_95": 0.8735602377562109,
+    "note": "Best available validation checkpoint only; not a final detector result because the 30-epoch protocol is incomplete."
+  },
+  "failure": {
+    "phase": "FORWARD_LOSS",
+    "epoch": 3,
+    "batch_index": 298,
+    "loss_classifier": "NaN",
+    "loss_box_reg": "NaN",
+    "loss_objectness": "NaN",
+    "loss_rpn_box_reg": "Infinity",
+    "total_loss": "NaN",
+    "root_cause": "NO AISLADA"
+  },
+  "protocol_status": {
+    "planned_epochs": 30,
+    "completed_epochs": 2,
+    "protocol_30_epochs": "INCOMPLETO",
+    "detector_test": "NO EJECUTADO",
+    "final_detector_evaluation": "NOT PERFORMED",
+    "end_to_end_system": "NOT EVALUATED"
+  },
+  "epoch_validation_metrics": [
+    {
+      "epoch": 1,
+      "train_loss": 0.05928141094315996,
+      "validation_recall": 0.986740917528507,
+      "validation_precision": 0.6598687710586983,
+      "map50": 0.9483276169045958,
+      "map50_95": 0.8735602377562109,
+      "checkpoint_nonfinite_tensors": 0,
+      "checkpoint_nonfinite_values": 0
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.04882050272958872,
+      "validation_recall": 0.9856801909307876,
+      "validation_precision": 0.3257097791798107,
+      "map50": 0.9452402424505219,
+      "map50_95": 0.7456033625383965,
+      "checkpoint_nonfinite_tensors": 0,
+      "checkpoint_nonfinite_values": 0
+    }
+  ],
+  "reproducibility": {
+    "run_code_commit": "7478155",
+    "seed": 37,
+    "architecture": "torchvision Faster R-CNN",
+    "detection_task": "single foreground class LEUKOCYTE_CANDIDATE",
+    "foreground_label": 1,
+    "background_label": 0,
+    "optimizer": "SGD + momentum",
+    "learning_rate": 0.005,
+    "batch_size": 2,
+    "epochs": 30,
+    "amp": false,
+    "dataset_split": "Delivery 1.1 Raabin Film-ID train/validation/test split from data/manifests/delivery11_raabin_detection.csv",
+    "selection_metric": "validation WBC candidate recall",
+    "python": "3.13.15",
+    "pytorch": "2.13.0+cu130",
+    "torchvision": "0.28.0+cu130",
+    "cuda": "13.0",
+    "gpu": "NVIDIA A10G",
+    "ec2_host": "ec2-54-226-174-68.compute-1.amazonaws.com",
+    "ec2_instance_id": "i-0efafee8f1fda6af7",
+    "ec2_instance_type": "g5.xlarge",
+    "ec2_availability_zone": "us-east-1c",
+    "remote_repo": "/home/ubuntu/hemato-osr",
+    "raabin_rar_remote_path": "/opt/dlami/nvme/datasets/raabin_wbc/raw/WBCData.rar",
+    "raabin_rar_size_bytes": 55781603692,
+    "raabin_rar_sha256": "23473a5444d1265777805c4fd395ef3dabcd6c4fdfbe9c6898146ae41543376e"
+  },
+  "checkpoint_hashes": {
+    "epoch_001.pt": "10d2c38df9e89ddf521ee706ac3f9d1877074886938e81c55156b59ca953a769",
+    "epoch_002.pt": "d228f6b7dc6211644067c5b01839dc878d325618436ec1cc0b81ce3f641386b3",
+    "best_checkpoint.pt": "c054bd7ec5b7aa5cd3ca7b91249e844d7ff3a267ea0f363d9c8f2dc5b47ac983"
+  },
+  "local_preservation_policy": {
+    "checkpoints_copied_local": false,
+    "large_raw_dataset_copied_local": false,
+    "reason": "Large artifacts remain remote and will be lost when EC2 is terminated; only hashes and compact reproducibility artifacts are preserved locally."
+  }
+}

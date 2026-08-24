@@ -1,0 +1,20 @@
+{
+  "manifest": "data/manifests/delivery11_raabin_detection.csv",
+  "train_rows": 17032,
+  "validation_rows": 3771,
+  "train_unique_images": 11413,
+  "validation_unique_images": 2832,
+  "train_film_ids": 50,
+  "validation_film_ids": 11,
+  "film_id_overlap_count": 0,
+  "film_id_overlap": [],
+  "image_path_overlap_count": 0,
+  "image_path_overlap": [],
+  "annotation_path_overlap_count": 0,
+  "annotation_path_overlap": [],
+  "image_sha256_overlap_count": 0,
+  "image_sha256_overlap": [],
+  "validation_images_in_training_dataloader_count": 0,
+  "validation_images_in_training_dataloader": [],
+  "result": "PASS"
+}

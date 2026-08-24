@@ -1,0 +1,66 @@
+{
+  "phase": "FORWARD_LOSS",
+  "epoch": 3,
+  "batch_index": 298,
+  "target_summaries": [
+    {
+      "image_id": [
+        2465
+      ],
+      "box_count": 1,
+      "boxes_finite": true,
+      "labels": [
+        1
+      ],
+      "boxes": [
+        [
+          1528.0,
+          1609.0,
+          2103.0,
+          2184.0
+        ]
+      ]
+    },
+    {
+      "image_id": [
+        4056
+      ],
+      "box_count": 2,
+      "boxes_finite": true,
+      "labels": [
+        1,
+        1
+      ],
+      "boxes": [
+        [
+          2963.0,
+          2208.0,
+          3538.0,
+          2783.0
+        ],
+        [
+          1522.0,
+          805.0,
+          2097.0,
+          1380.0
+        ]
+      ]
+    }
+  ],
+  "loss_values": {
+    "loss_classifier": NaN,
+    "loss_box_reg": NaN,
+    "loss_objectness": NaN,
+    "loss_rpn_box_reg": Infinity
+  },
+  "total_loss": NaN,
+  "component_finite": {
+    "loss_classifier": false,
+    "loss_box_reg": false,
+    "loss_objectness": false,
+    "loss_rpn_box_reg": false
+  },
+  "gradient_stats": null,
+  "parameter_stats": null,
+  "amp_used": false
+}

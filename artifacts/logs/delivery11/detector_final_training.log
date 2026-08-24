@@ -1,0 +1,25 @@
+/opt/pytorch/lib/python3.13/site-packages/torch/cuda/__init__.py:64: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+Traceback (most recent call last):
+  File "/home/ubuntu/hemato-osr/scripts/experiments/run_delivery11.py", line 2195, in <module>
+    main()
+    ~~~~^^
+  File "/home/ubuntu/hemato-osr/scripts/experiments/run_delivery11.py", line 220, in main
+    _train_raabin_detector(
+    ~~~~~~~~~~~~~~~~~~~~~~^
+        manifest=args.manifest,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        max_train_steps=args.max_train_steps,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ubuntu/hemato-osr/scripts/experiments/run_delivery11.py", line 1302, in _train_raabin_detector
+    loss_values = _fail_if_nonfinite_loss(
+        loss_dict=loss_dict,
+    ...<4 lines>...
+        targets=targets,
+    )
+  File "/home/ubuntu/hemato-osr/scripts/experiments/run_delivery11.py", line 1795, in _fail_if_nonfinite_loss
+    raise FloatingPointError("Non-finite Faster R-CNN loss detected")
+FloatingPointError: Non-finite Faster R-CNN loss detected
