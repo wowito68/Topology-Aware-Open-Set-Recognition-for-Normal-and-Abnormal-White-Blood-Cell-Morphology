@@ -1,0 +1,14 @@
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l l r r r l X}
+\toprule
+Dataset & Role & Images & Known & Unknown & Format & Use in protocol \\
+\midrule
+MLL23 & Internal & 41,621 & 5 & 13 & TIFF, 288$\times$288 & Known classes are used for training, validation, and known testing; held-out morphologies are test-only unknowns. \\
+AML-LMU & External & 18,365 & 5 mapped & 10 mapped & TIFF, 400$\times$400 RGB & Test-only external validation; no adaptation, calibration, threshold tuning, PCA fitting, ViM fitting, or method selection. \\
+\bottomrule
+\end{tabularx}
+\caption{Datasets and open-set protocol roles. Unknown denotes only outside the known training taxonomy; it is not a diagnostic label.}
+\label{tab:datasets}
+\end{table}

@@ -1,0 +1,106 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+
+\title{Supplementary Material\\Evaluating Open-Set Reliability in Leukocyte Morphology Classification under Domain Shift}
+\author{G. Álvarez Sánchez}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{S1. Experimental Configuration}
+
+The principal model family is ImageNet-pretrained ResNet18. Images are resized to 224 by 224 pixels. Training uses AdamW, learning rate $3\times10^{-4}$, weight decay $10^{-4}$, batch size 64, automatic mixed precision, and checkpoint selection by known-validation macro-F1. The frozen seeds are 13, 37, 73, 101, and 137. The main representations are cross entropy and ArcFace. ArcFace uses scale $s=30$ and angular margin $m=0.30$.
+
+\section*{S2. Exact V1 and V2 Definitions}
+
+V1 is the deterministic original split. V2 is a conservative exact and near-duplicate sensitivity split generated from checksum and perceptual-hash candidate audits. The V2 audit preserved the same train, validation, and test totals and moved two samples to eliminate high-confidence grouped cross-split candidates. V2 is not a patient-level split because reliable patient identifiers were unavailable in the working MLL23 manifests.
+
+\section*{S3. Full Multiseed Summary}
+
+\begin{longtable}{l l l r r}
+\toprule
+Split & Representation & Metric & Mean & SD \\
+\midrule
+V1 & CE & closed macro-F1 & 0.970 & 0.004 \\
+V1 & CE & MSP AUROC & 0.868 & 0.014 \\
+V1 & CE & MSP FPR@95TPR & 0.515 & 0.061 \\
+V1 & CE & ViM AUROC & 0.877 & 0.004 \\
+V1 & CE & ViM FPR@95TPR & 0.484 & 0.027 \\
+V1 & ArcFace & closed macro-F1 & 0.970 & 0.004 \\
+V1 & ArcFace & MSP AUROC & 0.881 & 0.012 \\
+V1 & ArcFace & MSP FPR@95TPR & 0.445 & 0.046 \\
+V1 & ArcFace & ViM AUROC & 0.869 & 0.014 \\
+V1 & ArcFace & ViM FPR@95TPR & 0.543 & 0.062 \\
+V2 & CE & closed macro-F1 & 0.970 & 0.004 \\
+V2 & CE & MSP AUROC & 0.872 & 0.019 \\
+V2 & CE & MSP FPR@95TPR & 0.530 & 0.103 \\
+V2 & CE & ViM AUROC & 0.874 & 0.008 \\
+V2 & CE & ViM FPR@95TPR & 0.528 & 0.050 \\
+V2 & ArcFace & closed macro-F1 & 0.969 & 0.005 \\
+V2 & ArcFace & MSP AUROC & 0.852 & 0.030 \\
+V2 & ArcFace & MSP FPR@95TPR & 0.537 & 0.064 \\
+V2 & ArcFace & ViM AUROC & 0.850 & 0.025 \\
+V2 & ArcFace & ViM FPR@95TPR & 0.611 & 0.086 \\
+\bottomrule
+\end{longtable}
+
+\section*{S4. Post-Hoc Open-Set Methods}
+
+The frozen analysis includes MSP, energy, k-nearest-neighbor distance, nearest-class-mean distance, Mahalanobis variants, ReAct, and ViM. The main manuscript emphasizes MSP and ViM because they are the principal internal and external comparators in the frozen result set. All fitted quantities are derived from known-training samples only.
+
+\section*{S5. External Per-Morphology Metrics}
+
+{\small
+\begin{longtable}{p{0.22\textwidth} r r r p{0.22\textwidth} r}
+\toprule
+Unknown morphology & n & AUROC & FPR@95TPR & Known attractor & Fraction \\
+\midrule
+Promyelocyte & 70 & 0.897 & 0.429 & monocyte & 0.90 \\
+Myelocyte & 42 & 0.880 & 0.418 & neutrophil\_segmented & 0.40 \\
+Metamyelocyte & 15 & 0.867 & 0.358 & neutrophil\_segmented & 0.90 \\
+Promyelocyte bilobled & 18 & 0.856 & 0.411 & monocyte & 0.90 \\
+Erythroblast & 78 & 0.792 & 0.550 & lymphocyte & 0.80 \\
+Smudge cell & 15 & 0.782 & 0.611 & lymphocyte & 0.60 \\
+Lymphocyte atypical & 11 & 0.597 & 0.687 & lymphocyte & 0.60 \\
+Myeloblast & 3268 & 0.592 & 0.819 & lymphocyte & 0.90 \\
+Monoblast & 26 & 0.575 & 0.714 & monocyte & 1.00 \\
+Neutrophil band & 109 & 0.526 & 0.944 & neutrophil\_segmented & 1.00 \\
+\bottomrule
+\end{longtable}
+}
+
+\section*{S6. Near-Duplicate Audit}
+
+The near-duplicate audit combined exact checksum information and perceptual-hash candidate grouping. The audit identified 256 non-singleton components and two high-confidence grouped cross-split candidates before V2 adjustment. After V2 adjustment, grouped cross-split candidate count was zero while split totals remained train 12,793, validation 2,741, and test 26,087. Because patient identifiers were not available, this audit addresses image-level duplicate risk only.
+
+\section*{S7. External Taxonomy Mapping}
+
+The external mapping is exact where possible. BAS, EOS, LYT, MON, and NGS map to the five known classes. EBO, KSC, LYA, MMZ, MOB, MYB, MYO, NGB, PMB, and PMO are protocol unknowns. UNC and missing re-annotation labels have zero gold-standard samples and are excluded. Band neutrophils, atypical lymphocytes, blasts, and immature myeloid labels are not collapsed into mature known classes.
+
+\section*{S8. ArcFace Configuration and Confirmation Rule}
+
+ArcFace uses normalized embeddings and class weights, scale 30, and angular margin 0.30. The internal confirmation result is mixed: V1 MSP AUROC mean delta is +0.013 with four of five favorable seed pairs, but the interval includes zero; V2 MSP AUROC mean delta is -0.020 with one of five favorable seed pairs. The manuscript therefore avoids claiming robust ArcFace superiority.
+
+\section*{S9. Cubical Persistent-Homology Ablation}
+
+Cubical persistent homology was evaluated over raw grayscale filtrations, morphology-candidate distance maps, CNN feature-map filtrations, early fusion, and late fusion. TDA-only variants reached approximately 0.55--0.58 open-set AUROC, and fusion degraded the principal deep baseline. These results support a negative predictive ablation under the evaluated protocol.
+
+\section*{S10. Vietoris-Rips Methodology}
+
+The Vietoris-Rips analysis uses L2-normalized embeddings, cosine distance, 192 samples per cloud, fixed sample seed 2026, GUDHI 3.13.0, and homology dimensions 0 and 1. The frozen output contains 1,000 homology summary rows, corresponding to 500 cloud analyses with two homology dimensions per cloud. The analysis is explanatory only and is not used for prediction, thresholding, model selection, or scorer tuning.
+
+\section*{S11. Reproducibility Notes}
+
+The manuscript-level freeze records dataset counts, split counts, internal and external headline metrics, morphology-level results, and topology interpretation in \texttt{results\_freeze.yaml}. Quantitative claims in the main manuscript are indexed in \texttt{claim\_traceability.csv}. Raw datasets, checkpoints, embeddings, and credentials are not included in the paper directory.
+
+\end{document}

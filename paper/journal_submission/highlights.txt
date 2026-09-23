@@ -1,0 +1,5 @@
+Closed-set F1 near 0.97 did not ensure unknown rejection.
+External domain shift reduced AUROC and changed method ranking.
+Failure clustered around morphology-specific known-class attractors.
+ArcFace improved geometry but not robust open-set reliability.
+Persistent homology was secondary and not predictive.

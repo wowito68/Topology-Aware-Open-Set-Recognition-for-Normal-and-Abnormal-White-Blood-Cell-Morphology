@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+\centering
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c}
+\toprule
+System & V1 AUROC & V1 FPR@95TPR & V1 closed F1 & V2 AUROC & V2 FPR@95TPR & V2 closed F1 \\
+\midrule
+CE+MSP & 0.868 $\pm$ 0.014 & 0.515 $\pm$ 0.061 & 0.970 $\pm$ 0.004 & 0.872 $\pm$ 0.019 & 0.530 $\pm$ 0.103 & 0.970 $\pm$ 0.004 \\
+CE+ViM & 0.877 $\pm$ 0.004 & 0.484 $\pm$ 0.027 & 0.970 $\pm$ 0.004 & 0.874 $\pm$ 0.008 & 0.528 $\pm$ 0.050 & 0.970 $\pm$ 0.004 \\
+ArcFace+MSP & 0.881 $\pm$ 0.012 & 0.445 $\pm$ 0.046 & 0.970 $\pm$ 0.004 & 0.852 $\pm$ 0.030 & 0.537 $\pm$ 0.064 & 0.969 $\pm$ 0.005 \\
+ArcFace+ViM & 0.869 $\pm$ 0.014 & 0.543 $\pm$ 0.062 & 0.970 $\pm$ 0.004 & 0.850 $\pm$ 0.025 & 0.611 $\pm$ 0.086 & 0.969 $\pm$ 0.005 \\
+\bottomrule
+\end{tabular}
+}
+\caption{Internal MLL23 multiseed results. Values are mean $\pm$ standard deviation over five training seeds. Unknown samples are positive for AUROC and FPR@95TPR.}
+\label{tab:internal}
+\end{table}

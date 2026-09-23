@@ -1,0 +1,41 @@
+\section{Discussion}
+
+\subsection{Closed-Set Performance Is Insufficient Evidence of Open-Set Reliability}
+
+The primary result is the coexistence of strong closed-set leukocyte classification and incomplete open-set reliability. Internally, both CE and ArcFace ResNet18 models achieved macro-F1 near 0.97 on known mature leukocytes. If the evaluation ended there, the systems would appear highly reliable. Open-set metrics changed the interpretation. CE+ViM reached internal AUROC around 0.87, but FPR@95TPR remained near 0.48--0.53. External AUROC then fell to approximately 0.57--0.70 across principal systems, with high FPR@95TPR. These findings show that the ability to classify known leukocytes does not imply the ability to reject unseen morphologies.
+
+This is not a contradiction. Closed-set metrics condition on the assumption that the correct label is in the model's label set. Open-set recognition tests a different behavior: whether an input should be withheld from the known taxonomy. A model can make accurate known-class decisions and still assign a morphologically related unknown sample to the closest known class with high confidence. For hematological morphology, that behavior is expected to be common because unseen classes are often biologically and visually related to known classes rather than arbitrary image corruptions.
+
+\subsection{Morphological Similarity Produces Structured Failure}
+
+The failure analysis indicates that unknown errors are structured by morphology. Neutrophil-band was difficult externally and was dominantly attracted toward segmented neutrophil. Monoblast was dominantly attracted toward monocyte. Myeloblast, atypical lymphocyte, and smudge-cell showed attraction toward lymphocyte in the external CE+ViM analysis. These are not random mistakes. They reflect recognition-space neighborhoods that are plausible under visual morphology, even though the protocol requires these samples to remain outside the known taxonomy.
+
+This observation has two implications. First, aggregate AUROC is necessary but insufficient. A system with acceptable mean performance may still fail on the most clinically or morphologically interesting unknown categories. Second, open-set hematology evaluations should report per-morphology behavior, including known-class attractors and small-class uncertainty. The present study does not claim that these attractors prove biological causality. It claims that open-set errors are morphology-dependent and therefore require morphology-level analysis.
+
+\subsection{Better Known-Class Geometry Does Not Guarantee Better Unknown Separation}
+
+ArcFace is informative precisely because it improved some known-class geometry summaries without producing a robust open-set advantage. The higher Fisher ratio and smaller within-class dispersion show that the representation changed in the intended direction for known classes. However, the V1 MSP AUROC advantage was not confirmed by V2, and the matched-seed evidence did not support a global superiority claim. Externally, ArcFace+MSP was competitive in some comparisons, especially V2, but this does not erase the internal confirmation failure.
+
+The result cautions against a common shortcut: assuming that compact known-class clusters automatically improve unknown rejection. Unknown samples are judged relative to the learned known-class geometry. If an unseen morphology lies near a known class, a more compact or angular representation may still treat it as a confident member of that known neighborhood. The evidence therefore supports a conservative interpretation: ArcFace is a useful representation ablation and a source of insight, not a confirmed method for robust open-set leukocyte recognition.
+
+\subsection{External Domain Shift Changes the Problem}
+
+AML-LMU is the decisive stress test in the paper. It differs from MLL23 in source, acquisition context, image dimensions, class composition, and source taxonomy. The test-only protocol prevents external adaptation from obscuring the generalization question. Under this design, all principal systems degraded. Closed macro-F1 fell by roughly 0.21--0.26 depending on representation and split, and open-set AUROC fell for every system. The method ranking also changed: ViM was stable internally but MSP was stronger externally in the principal CE and ArcFace comparisons.
+
+This ranking instability matters for research practice. If a method is selected solely because it performs best internally, the selection may not transfer to a new acquisition domain. Conversely, if a method looks strong externally after many external tuning choices, it may no longer be a clean test of generalization. The present study chooses the stricter route: external data remain untouched until final evaluation. The resulting performance is not flattering, but it is scientifically useful because it measures a realistic failure mode.
+
+\subsection{What Persistent Homology Reveals and Does Not Reveal}
+
+Persistent homology has a disciplined but secondary role. Cubical persistent homology was tested as a predictive feature family and did not provide robust complementary unknown-detection utility. The negative result should remain in the paper because it prevents the title and framing from implying an unsupported topology-based method. It also documents that image-derived topology, as implemented in the frozen experiments, did not solve the open-set problem.
+
+Vietoris-Rips persistent homology is different. It describes the topology of learned embedding clouds after the predictive experiments are fixed. The observed seed, split, and domain variation may help characterize representation behavior, but the topology-OSR correlations are weak and inconsistent. The study therefore avoids causal claims. Topology may be useful for future exploratory diagnostics, but the present evidence does not support using it as a predictor of open-set reliability.
+
+\subsection{Implications for Evaluation}
+
+The results support a conservative evaluation checklist for hematological morphology systems. Unknown classes should be defined before metrics are produced. Unknown samples should remain test-only. Exact and near-duplicate leakage should be audited, and patient-level validation should not be claimed when patient identifiers are unavailable. Results should be reported across seeds, externally where possible, and per unknown morphology. Claims should distinguish known-class classification, open-set recognition, and patient-level diagnosis.
+
+This manuscript is therefore best positioned as a rigorous empirical study rather than a new architecture paper. Its contribution is not that CE, ArcFace, ViM, MSP, or persistent homology is the final answer. Its contribution is the evidence that a plausible closed-set leukocyte classifier can fail in structured ways when the taxonomy is incomplete and the acquisition domain changes.
+
+The study also argues for a different style of reporting in biomedical morphology benchmarks. A single same-source accuracy number is easy to communicate, but it can hide whether the model has learned a robust morphology representation or a narrower source-specific decision rule. Reporting seed variation, split sensitivity, external transfer, and morphology-level unknown behavior makes the story less tidy, but it better reflects the reliability question that arises when models are reused outside their original label inventory. This is particularly important for open-set settings, where the most consequential behavior may be the decision not to assign a known class.
+
+Finally, the results clarify the role of negative evidence. The ArcFace and persistent-homology analyses did not produce a simple improvement story, but they prevent misleading conclusions. ArcFace shows that better known-class geometry is not equivalent to better unknown rejection. Cubical persistent homology shows that the evaluated image-topology descriptors did not rescue open-set performance. Vietoris-Rips summaries show that embedding topology can be described without being promoted as a predictor. Keeping these findings in the manuscript makes the evaluation more reproducible and less vulnerable to selective reporting.

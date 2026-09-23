@@ -1,0 +1,31 @@
+citation_key,verified,official_source,DOI,metadata_complete,action
+mll23_nature_2025,YES,Nature Scientific Data/Crossref,10.1038/s41597-025-06223-x,YES,Kept and completed metadata
+mll23_zenodo_2024,YES,Zenodo,10.5281/zenodo.14277609,PARTIAL,Kept as dataset record
+aml_lmu_tcia_2019,YES,The Cancer Imaging Archive,10.7937/tcia.2019.36f5o9ld,PARTIAL,Kept as dataset record
+walter2023_ai_hematology,YES,Crossref,10.1016/j.blre.2022.101019,YES,Added hematology AI review/context
+khan2021_wbc_review,YES,Crossref,10.1109/ACCESS.2020.3048172,YES,Added verified WBC classification review
+deshpande2021_blood_cells_review,YES,PubMed/Crossref,10.7717/peerj-cs.460,YES,Added broader blood-cell AI review
+acevedo2019_peripheral_blood_cnn,YES,Crossref,10.1016/j.cmpb.2019.105020,YES,Added peripheral blood-cell CNN reference
+matek2019_blast,YES,Crossref,10.1038/s42256-019-0101-9,YES,Added hematology morphology deep-learning reference
+matek2021_bone_marrow,YES,Crossref,10.1182/blood.2020010568,YES,Added bone marrow morphology reference
+salehi2022_cross_domain,YES,Crossref,10.1007/978-3-031-16437-8_71,YES,Added cross-domain blood-cell reference
+sadafi2024_continual_wbc,YES,Crossref,10.1007/978-3-031-45857-6_14,YES,Added cross-domain WBC reference
+tsutsui2023_wbc_domain_shift,PARTIAL,arXiv,arXiv:2303.01777,PARTIAL,Added as preprint and treated cautiously
+scheirer2013_open_set,YES,Crossref,10.1109/TPAMI.2012.256,YES,Added foundational OSR reference
+bendale2016_openmax,YES,IEEE/Crossref,10.1109/CVPR.2016.173,YES,Kept and completed DOI
+geng2021_osr_survey,YES,Crossref,10.1109/TPAMI.2020.2981604,YES,Added OSR survey
+yang2024_generalized_ood,YES,Crossref,10.1007/s11263-024-02117-4,YES,Added generalized OOD survey
+hong2024_medical_ood_survey,PARTIAL,arXiv,arXiv:2404.18279,PARTIAL,Added medical OOD survey as preprint
+litjens2017_medical_ai_survey,YES,Crossref,10.1016/j.media.2017.07.005,YES,Added medical imaging DL survey
+guan2022_domain_adaptation_medical,YES,Crossref,10.1109/TBME.2021.3117407,YES,Added medical domain adaptation survey
+he2016_resnet,YES,IEEE/Crossref,10.1109/CVPR.2016.90,YES,Kept and completed DOI
+hendrycks2017_msp,YES,OpenReview,NA,PARTIAL,Kept MSP baseline reference
+liu2020_energy,YES,NeurIPS proceedings,NA,PARTIAL,Kept energy OOD reference
+sun2021_react,YES,NeurIPS proceedings,NA,PARTIAL,Kept ReAct reference
+wang2022_vim,YES,CVPR/arXiv/DBLP,NA,PARTIAL,Kept ViM reference
+deng2019_arcface,YES,IEEE/Crossref,10.1109/CVPR.2019.00482,YES,Kept and completed DOI
+khosla2020_supcon,YES,NeurIPS proceedings,NA,PARTIAL,Kept supervised contrastive reference
+edelsbrunner2002_persistence,YES,Crossref,10.1007/s00454-002-2885-2,YES,Kept topology reference
+carlsson2009_topology,YES,Crossref,10.1090/S0273-0979-09-01249-X,YES,Kept topology review reference
+maria2014_gudhi,YES,Crossref,10.1007/978-3-662-44199-2_28,YES,Kept GUDHI reference
+legacy_temporary_hematology_review,REMOVED,NA,NA,NA,Removed temporary citation from bibliography

@@ -1,0 +1,5 @@
+F1 de conjunto cerrado cercano a 0.97 no aseguró rechazo de desconocidos.
+El cambio de dominio externo redujo AUROC y cambió el ranking metodológico.
+Los fallos se agruparon alrededor de atractores morfológicos de clases conocidas.
+ArcFace mejoró la geometría, pero no la fiabilidad robusta de conjunto abierto.
+La homología persistente fue secundaria y no predictiva.

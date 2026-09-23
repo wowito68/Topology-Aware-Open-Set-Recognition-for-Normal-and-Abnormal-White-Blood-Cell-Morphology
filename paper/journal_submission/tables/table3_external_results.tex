@@ -1,0 +1,22 @@
+\begin{table}[htbp]
+\centering
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c}
+\toprule
+System & Train split & AUROC & FPR@95TPR & OSCR & Closed macro-F1 \\
+\midrule
+CE+MSP & V1 & 0.696 $\pm$ 0.074 & 0.796 $\pm$ 0.134 & 0.664 $\pm$ 0.068 & 0.711 $\pm$ 0.051 \\
+CE+MSP & V2 & 0.630 $\pm$ 0.094 & 0.887 $\pm$ 0.100 & 0.599 $\pm$ 0.081 & 0.705 $\pm$ 0.030 \\
+CE+ViM & V1 & 0.641 $\pm$ 0.090 & 0.785 $\pm$ 0.116 & 0.608 $\pm$ 0.078 & 0.711 $\pm$ 0.051 \\
+CE+ViM & V2 & 0.573 $\pm$ 0.123 & 0.867 $\pm$ 0.138 & 0.540 $\pm$ 0.107 & 0.705 $\pm$ 0.030 \\
+ArcFace+MSP & V1 & 0.690 $\pm$ 0.045 & 0.689 $\pm$ 0.107 & 0.664 $\pm$ 0.043 & 0.755 $\pm$ 0.009 \\
+ArcFace+MSP & V2 & 0.696 $\pm$ 0.069 & 0.723 $\pm$ 0.162 & 0.660 $\pm$ 0.075 & 0.708 $\pm$ 0.036 \\
+ArcFace+ViM & V1 & 0.563 $\pm$ 0.084 & 0.879 $\pm$ 0.083 & 0.542 $\pm$ 0.080 & 0.755 $\pm$ 0.009 \\
+ArcFace+ViM & V2 & 0.632 $\pm$ 0.087 & 0.851 $\pm$ 0.062 & 0.599 $\pm$ 0.086 & 0.708 $\pm$ 0.036 \\
+\bottomrule
+\end{tabular}
+}
+\caption{AML-LMU external test-only results. Values are mean $\pm$ standard deviation over five training seeds. No AML-LMU data are used for training, adaptation, calibration, or method selection.}
+\label{tab:external}
+\end{table}

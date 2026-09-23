@@ -1,0 +1,89 @@
+\section{Materials and Methods}
+
+\subsection{Datasets}
+
+\subsubsection{MLL23 Internal Domain}
+
+MLL23 is the internal dataset for model training, known-validation checkpoint selection, known testing, and internal unknown testing \cite{mll23_nature_2025,mll23_zenodo_2024}. The audited manifest used in this study contains 41,621 TIFF images, each 288 by 288 pixels, assigned to 18 canonical morphology classes. The known training taxonomy is restricted to five mature leukocyte classes: basophil, eosinophil, lymphocyte, monocyte, and segmented neutrophil. The remaining 13 MLL23 morphologies are held out as unknown classes and are not used for training, validation, calibration, representation fitting, or model selection.
+
+The frozen split counts are 12,793 known-training images, 2,741 known-validation images, 2,742 known-test images, and 23,345 unknown-test images. Known-validation samples are used only for checkpoint selection based on known-class macro-F1 and for threshold-related reporting where a threshold is needed. Unknown-test samples are reserved for final metric computation and morphology-level failure analysis. Exact sample identifiers and checksums are not allowed to cross train/test boundaries.
+
+The known-validation role is intentionally narrow. It supports model selection among checkpoints produced from the same training run, but it does not supply unknown examples for tuning an open-set decision boundary. This design avoids a common ambiguity in open-set studies: if held-out unknown morphologies are used to choose a threshold or score family, they are no longer fully unseen for evaluation. The frozen protocol therefore separates known-class checkpointing from unknown-class testing.
+
+\subsubsection{AML-Cytomorphology\_LMU External Domain}
+
+AML-Cytomorphology\_LMU is the independent external validation dataset \cite{aml_lmu_tcia_2019}. The audited manifest contains 18,365 TIFF images that load as 400 by 400 RGB arrays. The collection documents expert-labeled single-cell peripheral blood smear images from 100 patients diagnosed with acute myeloid leukemia and 100 non-malignant controls. Patient identifiers were not available in the audited API fields or annotation file used by this project; therefore, no patient-level split is claimed.
+
+The external taxonomy mapping was frozen before evaluation. BAS, EOS, LYT, MON, and NGS map to basophil, eosinophil, lymphocyte, monocyte, and segmented neutrophil, respectively. EBO, KSC, LYA, MMZ, MOB, MYB, MYO, NGB, PMB, and PMO are treated as external unknown morphologies. UNC and missing re-annotation labels are excluded by policy and have zero samples in the audited gold-standard column. Band neutrophils are not collapsed into segmented neutrophils, atypical lymphocytes are not collapsed into typical lymphocytes, and blast or immature labels are not encoded as mature known classes.
+
+AML-LMU is test-only. It is never used for external fine-tuning, threshold calibration, method selection, PCA fitting, ViM fitting, kNN reference construction, external preprocessing selection, or taxonomy revision. This restriction is a major design feature: the external experiment evaluates frozen internal systems under domain shift.
+
+Because AML-LMU contains both mapped known classes and mapped unknown morphologies, it can test two behaviors at once. The closed-set portion measures whether known mature leukocytes transfer across domains. The open-set portion measures whether out-of-taxonomy morphologies remain separable from the known classes under the same transfer. The two behaviors are reported separately because a model can preserve one while losing the other.
+
+\input{tables/table1_datasets_protocol}
+
+\subsection{Open-Set Taxonomy and Split Protocols}
+
+Let $\mathcal{Y}_K$ denote the known training taxonomy:
+\[
+\mathcal{Y}_K = \{\text{basophil}, \text{eosinophil}, \text{lymphocyte}, \text{monocyte}, \text{neutrophil\_segmented}\}.
+\]
+For a test image $x$, the closed-set classifier predicts one class in $\mathcal{Y}_K$. Open-set evaluation additionally asks whether $x$ belongs outside $\mathcal{Y}_K$. Unknown is therefore a protocol status, not a diagnosis.
+
+Two internal split protocols are evaluated. V1 is the deterministic original split. V2 is a conservative near-duplicate-aware sensitivity split based on exact checksum and perceptual-hash candidate audits. The V2 audit preserves the same split totals while resolving high-confidence grouped cross-split candidates. Because reliable patient or acquisition-group identifiers were unavailable in the working MLL23 manifests, V2 is not described as patient-independent validation. It is a sensitivity analysis for exact and near-duplicate leakage, not a substitute for patient-level validation.
+
+\subsection{Backbone, Preprocessing, and Training}
+
+The principal model family is an ImageNet-pretrained ResNet18 \cite{he2016_resnet}. Images are resized to 224 by 224 pixels and normalized according to the frozen training pipeline. The network outputs logits for the five known classes and a 512-dimensional pre-logit embedding. Training uses AdamW with learning rate $3\times10^{-4}$, weight decay $10^{-4}$, batch size 64, automatic mixed precision, and checkpoint selection by known-validation macro-F1. The main experiments are repeated over five seeds: 13, 37, 73, 101, and 137.
+
+The baseline representation uses cross-entropy training. The ArcFace ablation uses normalized features and normalized class weights. If $z$ is the embedding and $w_c$ is the class weight for class $c$, then
+\[
+\hat{z}=\frac{z}{\lVert z\rVert}, \qquad
+\hat{w}_c=\frac{w_c}{\lVert w_c\rVert}, \qquad
+\cos\theta_c=\hat{w}_c^\top \hat{z}.
+\]
+For the target class $y$, the training logit is $s\cos(\theta_y+m)$ with fixed scale $s=30$ and margin $m=0.30$. No target margin is applied at inference because the target label is unknown. ArcFace configuration is frozen before multiseed confirmation.
+
+\subsection{Post-Hoc Open-Set Scores}
+
+For input $x$, let $f_c(x)$ be the logit for class $c\in\mathcal{Y}_K$. The closed-set prediction is
+\[
+\hat{y}(x)=\arg\max_{c\in\mathcal{Y}_K} f_c(x).
+\]
+Each post-hoc open-set method defines an unknownness score $S(x)$ oriented so that larger values indicate stronger evidence that $x$ lies outside $\mathcal{Y}_K$.
+
+Maximum softmax probability (MSP) uses the negative maximum softmax confidence as the unknownness score \cite{hendrycks2017_msp}. Energy uses an oriented log-sum-exp score \cite{liu2020_energy}. Cosine kNN uses the mean cosine distance to the $k=5$ nearest known-training embeddings. Nearest-class-mean and Mahalanobis scores compare embeddings with class prototypes or covariance-normalized residuals fitted on known-training embeddings. ReAct clips pre-classifier activations using a known-training percentile and recomputes an energy-like score \cite{sun2021_react}. ViM fits a known-training PCA residual subspace and combines residual magnitude with logit evidence through virtual-logit matching \cite{wang2022_vim}. All fitted quantities are derived from known-training data only.
+
+These scores represent common families of post-hoc open-set evidence. Confidence-based scores ask whether the classifier is uncertain among known classes. Distance-based scores ask whether an embedding is far from the known training distribution. Residual-subspace scores ask whether an embedding contains components poorly explained by known-class variation. These families can disagree, particularly under domain shift. The manuscript therefore reports MSP and ViM as principal comparators rather than selecting a winner after inspecting AML-LMU labels.
+
+\subsection{Evaluation Metrics and Statistical Reporting}
+
+Closed-set accuracy is the proportion of known-test samples whose predicted class equals the label. Balanced accuracy is the average of per-class recalls across known classes. Macro-F1 is the unweighted mean of per-class F1 scores. These metrics are reported for known-class classification because external class imbalance can make aggregate accuracy overly optimistic.
+
+Open-set metrics compare known-test samples with unknown-test samples. Unless otherwise stated, unknown samples are treated as the positive class. AUROC is the area under the receiver-operating-characteristic curve obtained by thresholding $S(x)$. AUPR is reported with both known and unknown orientation in artifacts, but the main manuscript emphasizes unknown-positive open-set behavior. FPR@95TPR is the false-positive rate among known samples when the true-positive rate for unknown samples is fixed at 95\%. OSCR summarizes the tradeoff between correct known classification and unknown rejection; it is retained in tables but not used to introduce new result selection.
+
+FPR@95TPR is intentionally stringent. It answers a different question from AUROC: if the system is forced to catch most unknown samples, how many known samples would be incorrectly rejected? In the present task, high FPR@95TPR should not be interpreted as a chosen clinical threshold. It is a standardized stress metric that makes the cost of high unknown sensitivity visible. Macro-F1 and FPR@95TPR are therefore complementary: the former describes known-class recognition, whereas the latter describes the burden of maintaining high unknown detection.
+
+All multiseed main results are reported as mean $\pm$ standard deviation over five seeds. Paired CE-versus-ArcFace statements use the frozen matched-seed delta summaries where available. The manuscript avoids post-hoc p-values and uses conservative language such as higher, lower, consistent, not consistently reproduced, interval includes zero, or favorable in $x/5$ seeds.
+
+No inferential test is added after the fact. This is deliberate because the study was not planned around a formal null-hypothesis testing hierarchy, and the frozen evidence is better summarized as multiseed stability, direction consistency, and external transfer. When a pattern changes between V1 and V2, the manuscript treats that change as evidence against robust superiority rather than as an opportunity to select the more favorable split.
+
+\subsection{Morphology-Dependent Failure Analysis}
+
+Morphology-level analysis is performed after aggregate metrics are frozen. For each unknown morphology, AUROC and FPR@95TPR are computed against the known-test distribution. Known-class attractors are estimated by the dominant closed-set prediction assigned to unknown samples. This analysis is descriptive: it identifies recognition-space failure patterns, not biological causality or diagnostic status.
+
+\subsection{Persistent-Homology Analyses}
+
+Cubical persistent homology is evaluated as a predictive ablation over image-derived filtrations, including raw grayscale fields, morphology-candidate distance maps, and CNN feature-map filtrations. Vectorized persistence features and fusion designs are fitted with training-only statistics. These experiments test whether persistent-homology summaries add predictive open-set signal beyond deep embeddings.
+
+Vietoris-Rips persistent homology is used only as an explanatory embedding analysis. For a point cloud $X=\{z_1,\ldots,z_n\}$ of L2-normalized embeddings with cosine distance $d$, the Vietoris-Rips complex at scale $\epsilon$ is
+\[
+VR_\epsilon(X)=\{\sigma\subseteq X: d(z_i,z_j)\leq \epsilon\ \forall z_i,z_j\in\sigma\}.
+\]
+The frozen analysis uses GUDHI 3.13.0, 192 samples per cloud, a fixed sample seed, and $H_0$ and $H_1$ summaries. These summaries are not used for training, thresholding, prediction, or method selection.
+
+\subsection{Reproducibility and Leakage Controls}
+
+The manuscript is organized around a result freeze rather than a new result-selection phase. Headline values are recorded in \texttt{results\_freeze.yaml}, and numerical claims in the abstract, results, discussion, and conclusion are indexed in \texttt{claim\_traceability.csv}. The traceability file links each quantitative statement to a frozen artifact, row filter, value, and verification status.
+
+Several controls preserve the open-set interpretation. Unknown morphologies are declared before metrics are produced. Unknown samples are absent from training, known-validation checkpointing, calibration, representation fitting, and method selection. External AML-LMU data are absent from all fitting steps. The V2 split is labeled only as an exact and near-duplicate sensitivity analysis because patient-level identifiers are unavailable. These controls do not make the protocol clinically complete, but they prevent the most direct forms of information leakage for the research question studied here.

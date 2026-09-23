@@ -1,0 +1,92 @@
+datasets:
+  mll23:
+    images: 41621
+    classes: 18
+    format: "TIFF"
+    dimensions: "288x288"
+    known_classes:
+      - basophil
+      - eosinophil
+      - lymphocyte
+      - monocyte
+      - neutrophil_segmented
+    unknown_classes: 13
+    split_counts:
+      train_known: 12793
+      validation_known: 2741
+      known_test: 2742
+      unknown_test: 23345
+    source_artifact: "mll23_summary.json"
+  aml_lmu:
+    images: 18365
+    format: "TIFF"
+    loaded_dimensions: "400x400 RGB"
+    known_rows: 14713
+    unknown_rows: 3652
+    role: "external test only"
+    source_artifact: "external_dataset_audit.json"
+internal_results:
+  ce:
+    v1:
+      closed_macro_f1: {mean: 0.9704566927, sd: 0.0044817957}
+      msp_auroc: {mean: 0.8677834043, sd: 0.0139297555}
+      msp_fpr95: {mean: 0.5151714077, sd: 0.0612445029}
+      vim_auroc: {mean: 0.8768365708, sd: 0.0043703336}
+      vim_fpr95: {mean: 0.4838803793, sd: 0.0266832843}
+    v2:
+      closed_macro_f1: {mean: 0.9698017400, sd: 0.0035122122}
+      msp_auroc: {mean: 0.8715357451, sd: 0.0193643892}
+      msp_fpr95: {mean: 0.5304886944, sd: 0.1030483186}
+      vim_auroc: {mean: 0.8739534859, sd: 0.0084785336}
+      vim_fpr95: {mean: 0.5279358133, sd: 0.0502902900}
+  arcface:
+    v1:
+      closed_macro_f1: {mean: 0.9698668351, sd: 0.0036871697}
+      msp_auroc: {mean: 0.8807864683, sd: 0.0124725347}
+      msp_fpr95: {mean: 0.4450036470, sd: 0.0461435053}
+      vim_auroc: {mean: 0.8691944275, sd: 0.0138262657}
+      vim_fpr95: {mean: 0.5430342815, sd: 0.0621421086}
+    v2:
+      closed_macro_f1: {mean: 0.9693428248, sd: 0.0046974755}
+      msp_auroc: {mean: 0.8516243316, sd: 0.0296080072}
+      msp_fpr95: {mean: 0.5372720642, sd: 0.0636725351}
+      vim_auroc: {mean: 0.8498170702, sd: 0.0253437986}
+      vim_fpr95: {mean: 0.6110138585, sd: 0.0856350112}
+arcface_confirmation:
+  v1_msp_auroc_delta:
+    mean_delta: 0.0130030640
+    favorable_seeds: 4
+    n: 5
+  v2_msp_auroc_delta:
+    mean_delta: -0.0199114135
+    favorable_seeds: 1
+    n: 5
+  conclusion: "ArcFace is not confirmed as a robust superior open-set representation."
+external_results:
+  ce_msp_v1: {auroc_mean: 0.6956550819, auroc_sd: 0.0735995827, fpr95_mean: 0.7957452593, fpr95_sd: 0.1341526650, closed_macro_f1_mean: 0.7109168440, closed_macro_f1_sd: 0.0507566233}
+  ce_msp_v2: {auroc_mean: 0.630, auroc_sd: 0.0942695378, fpr95_mean: 0.8868619588, fpr95_sd: 0.100, closed_macro_f1_mean: 0.7053412752, closed_macro_f1_sd: 0.0301037097}
+  ce_vim_v1: {auroc_mean: 0.6408366460, auroc_sd: 0.0899677238, fpr95_mean: 0.7847889621, fpr95_sd: 0.1159077939, closed_macro_f1_mean: 0.7109168440, closed_macro_f1_sd: 0.0507566233}
+  ce_vim_v2: {auroc_mean: 0.5730351607, auroc_sd: 0.1234177869, fpr95_mean: 0.8673689934, fpr95_sd: 0.1382810114, closed_macro_f1_mean: 0.7053412752, closed_macro_f1_sd: 0.0301037097}
+  arcface_msp_v1: {auroc_mean: 0.6901178567, auroc_sd: 0.0454030964, fpr95_mean: 0.6886834772, fpr95_sd: 0.1067917924, closed_macro_f1_mean: 0.7546810900, closed_macro_f1_sd: 0.0088457729}
+  arcface_msp_v2: {auroc_mean: 0.6964071625, auroc_sd: 0.0691816189, fpr95_mean: 0.7232651397, fpr95_sd: 0.1622853744, closed_macro_f1_mean: 0.7077181062, closed_macro_f1_sd: 0.0363199280}
+  arcface_vim_v1: {auroc_mean: 0.5632202717, auroc_sd: 0.0843630078, fpr95_mean: 0.8789777748, fpr95_sd: 0.0834475180, closed_macro_f1_mean: 0.7546810900, closed_macro_f1_sd: 0.0088457729}
+  arcface_vim_v2: {auroc_mean: 0.6315929040, auroc_sd: 0.0867955149, fpr95_mean: 0.8505267451, fpr95_sd: 0.0621977808, closed_macro_f1_mean: 0.7077181062, closed_macro_f1_sd: 0.0363199280}
+external_morphology_ce_vim:
+  easier_auroc:
+    promyelocyte: 0.8972851997
+    myelocyte: 0.8802479505
+    metamyelocyte: 0.8673399941
+    promyelocyte_bilobled: 0.8558194945
+    erythroblast: 0.7923775764
+  harder_auroc:
+    neutrophil_band: 0.5263844556
+    monoblast: 0.5751972353
+    myeloblast: 0.5923798956
+    lymphocyte_atypical: 0.5969315942
+    smudge_cell: 0.7822972881
+topology:
+  cubical_ph_predictive_result: "negative under evaluated protocol"
+  tda_only_open_set_auroc: "approximately 0.55-0.58"
+  vr_role: "explanatory only"
+  vr_cloud_analyses: 500
+  vr_homology_summary_rows: 1000

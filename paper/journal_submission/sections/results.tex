@@ -1,0 +1,87 @@
+\section{Results}
+
+\subsection{Closed-Set Performance on Known Morphologies}
+
+Internal closed-set classification was consistently strong across the five known mature leukocyte classes. With cross-entropy training, closed-set macro-F1 was 0.970 $\pm$ 0.004 on V1 and 0.970 $\pm$ 0.004 on V2. With ArcFace, closed-set macro-F1 was 0.970 $\pm$ 0.004 on V1 and 0.969 $\pm$ 0.005 on V2. These values show that the ResNet18 family learned the known morphology taxonomy well under both split protocols. They do not, however, establish reliable open-set behavior because the closed-set calculation excludes held-out unknown morphologies.
+
+\subsection{Internal Open-Set Recognition}
+
+Internal open-set performance was substantially lower than closed-set classification. CE+MSP achieved AUROC 0.868 $\pm$ 0.014 on V1 and 0.872 $\pm$ 0.019 on V2. CE+ViM achieved AUROC 0.877 $\pm$ 0.004 on V1 and 0.874 $\pm$ 0.008 on V2. The smaller standard deviation of CE+ViM supports its role as the most stable internal comparator, but FPR@95TPR remained high: 0.484 $\pm$ 0.027 on V1 and 0.528 $\pm$ 0.050 on V2. Thus, even the strongest internal comparator would falsely flag a substantial proportion of known samples when unknown sensitivity is fixed at 95\%.
+
+\input{tables/table2_internal_multiseed}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figure2_internal_performance.png}
+\caption{Internal MLL23 open-set performance across five seeds. Points show individual runs and horizontal summaries show seed-level means. Closed-set macro-F1 remains high, while open-set AUROC and FPR@95TPR show larger reliability gaps.}
+\label{fig:internal-performance}
+\end{figure}
+
+\subsection{Representation-Learning Stability Across Seeds and Splits}
+
+ArcFace improved some known-class geometry summaries but did not reproduce as a robust superior open-set representation. On V1 with MSP, ArcFace reached AUROC 0.881 $\pm$ 0.012, compared with 0.868 $\pm$ 0.014 for CE+MSP. The matched mean ArcFace-minus-CE AUROC delta was +0.013, with four of five seed pairs favorable. However, the frozen interval for this paired delta included zero. The V2 result reversed direction: ArcFace+MSP reached AUROC 0.852 $\pm$ 0.030, whereas CE+MSP reached 0.872 $\pm$ 0.019. The matched V2 delta was -0.020, with only one of five seeds favorable.
+
+The geometric effect of ArcFace was real. Fisher ratio was higher for ArcFace than CE on both V1 and V2: 3.210 $\pm$ 0.181 versus 2.703 $\pm$ 0.065 on V1, and 3.234 $\pm$ 0.323 versus 2.691 $\pm$ 0.092 on V2. Within-class dispersion was much smaller under the normalized angular representation. Yet geometry summaries were weakly associated with MSP AUROC across the 20 internal runs: Fisher ratio had Pearson $r=-0.138$ and Spearman $\rho=0.030$. The result separates known-class geometry from unknown rejection: improving one did not guarantee improving the other.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{figure3_arcface_stability.png}
+\caption{Matched ArcFace-minus-CE seed deltas for MSP. Positive AUROC deltas favor ArcFace; negative FPR@95TPR deltas favor ArcFace. The V1 trend does not reproduce under V2, so ArcFace is interpreted as an informative ablation rather than a confirmed superior method.}
+\label{fig:arcface-stability}
+\end{figure}
+
+\subsection{Morphology-Dependent Unknown Rejection}
+
+Unknown rejection difficulty varied strongly by morphology. In the external CE+ViM morphology analysis, the easiest unknowns by mean AUROC were promyelocyte (0.897), myelocyte (0.880), metamyelocyte (0.867), promyelocyte-bilobled (0.856), and erythroblast (0.792). The hardest were neutrophil-band (0.526), monoblast (0.575), myeloblast (0.592), lymphocyte-atypical (0.597), and smudge-cell (0.782). These values should be read as recognition-space measurements, not biological rankings of disease relevance.
+
+The difficult morphologies aligned with dominant known-class attractors. Neutrophil-band samples were assigned most often to segmented neutrophil. Monoblast samples were assigned most often to monocyte. Myeloblast, lymphocyte-atypical, and smudge-cell samples were frequently assigned to lymphocyte. This pattern explains why aggregate AUROC can obscure the most important errors: some unknown morphologies are not generic outliers but close neighbors of the known taxonomy.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.86\textwidth]{figure5_external_morphology.png}
+\caption{External morphology-dependent unknown detection for CE+ViM. Error bars show standard deviation across frozen CE+ViM external runs. Low AUROC for neutrophil-band, monoblast, myeloblast, and atypical lymphocyte shows that unknown rejection is strongly morphology-dependent.}
+\label{fig:external-morphology}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figure6_failure_cases.png}
+\caption{Known-class attractor failure analysis for representative hard unknown morphologies. Neutrophil-band is attracted toward segmented neutrophil, monoblast toward monocyte, and several lymphoid-like unknowns toward lymphocyte.}
+\label{fig:failure-cases}
+\end{figure}
+
+\subsection{External Validation under Domain Shift}
+
+External closed-set performance degraded substantially on AML-LMU. V1 ArcFace had external closed-set macro-F1 0.755 $\pm$ 0.009, while V1 CE reached 0.711 $\pm$ 0.051. V2 ArcFace reached 0.708 $\pm$ 0.036 and V2 CE reached 0.705 $\pm$ 0.030. These results were far below the internal macro-F1 near 0.97, despite external closed-set accuracy remaining superficially high because the mapped known classes were imbalanced.
+
+External open-set recognition was weaker than internal recognition for every principal system. V1 CE+MSP reached AUROC 0.696 $\pm$ 0.074 and FPR@95TPR 0.796 $\pm$ 0.134. V1 CE+ViM reached AUROC 0.641 $\pm$ 0.090 and FPR@95TPR 0.785 $\pm$ 0.116. V1 ArcFace+MSP reached AUROC 0.690 $\pm$ 0.045 and FPR@95TPR 0.689 $\pm$ 0.107, whereas V1 ArcFace+ViM reached AUROC 0.563 $\pm$ 0.084 and FPR@95TPR 0.879 $\pm$ 0.083.
+
+The V2 external pattern was similarly limited. V2 CE+MSP reached AUROC 0.630 $\pm$ 0.094 and FPR@95TPR 0.887 $\pm$ 0.100. V2 CE+ViM reached AUROC 0.573 $\pm$ 0.123 and FPR@95TPR 0.867 $\pm$ 0.138. V2 ArcFace+MSP reached AUROC 0.696 $\pm$ 0.069 and FPR@95TPR 0.723 $\pm$ 0.162. V2 ArcFace+ViM reached AUROC 0.632 $\pm$ 0.087 and FPR@95TPR 0.851 $\pm$ 0.062.
+
+\input{tables/table3_external_results}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figure4_domain_shift.png}
+\caption{Internal-to-external domain shift for the principal systems. AML-LMU is a test-only domain: no external training, threshold calibration, method selection, PCA fitting, ViM fitting, or preprocessing selection is performed.}
+\label{fig:domain-shift}
+\end{figure}
+
+\subsection{Internal-to-External Ranking Instability}
+
+Internal method rankings did not transfer cleanly. CE+ViM was the conservative internal-stability baseline, but MSP outperformed ViM by mean external AUROC for both CE and ArcFace across V1 and V2. For example, V1 CE+MSP reached external AUROC 0.696 compared with 0.641 for V1 CE+ViM. V2 CE+MSP reached 0.630 compared with 0.573 for V2 CE+ViM. ArcFace showed a similar MSP advantage externally. The practical external baseline is therefore CE+MSP, while CE+ViM remains the internally stable comparator. The manuscript does not promote a single universal winner.
+
+The magnitude of domain shift was large. For CE+ViM, AUROC dropped from 0.877 to 0.641 on V1 and from 0.874 to 0.573 on V2. FPR@95TPR increased from 0.484 to 0.785 on V1 and from 0.528 to 0.867 on V2. Closed macro-F1 dropped by 0.260 on V1 and 0.264 on V2. These paired changes support the central external-validity conclusion: acquisition and taxonomy-domain differences materially changed both closed-set and open-set behavior.
+
+\subsection{Secondary Topology and Geometry Analysis}
+
+Cubical persistent homology did not provide robust predictive open-set benefit under the evaluated protocol. TDA-only features encoded some class information, with the frozen TDA-only closed macro-F1 reaching approximately 0.828, but open-set AUROC remained approximately 0.55--0.58 for TDA-only variants. Deep+TDA fusion degraded the principal deep baseline rather than improving it. This result is a negative ablation, not a statement that cell morphology has no topological structure.
+
+Vietoris-Rips topology was more useful as a descriptive analysis of learned embeddings. The frozen analysis comprised 500 point-cloud analyses and 1,000 $H_0$/$H_1$ summary rows across internal and external domains, two splits, two representations, five seeds, known classes, and selected hard unknown morphologies. The topology-OSR relationships were weak and inconsistent. For MSP AUROC, mean known $H_1$ max persistence had Pearson $r=0.148$ and Spearman $\rho=0.014$, while Fisher ratio had Pearson $r=-0.138$ and Spearman $\rho=0.030$. These results do not support a predictive or causal topological claim.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figure7_topology.png}
+\caption{Secondary Vietoris-Rips topology summaries and exploratory associations with OSR metrics. The analysis describes embedding geometry after predictive results are frozen and is not used for model selection, thresholding, or prediction.}
+\label{fig:topology}
+\end{figure}
