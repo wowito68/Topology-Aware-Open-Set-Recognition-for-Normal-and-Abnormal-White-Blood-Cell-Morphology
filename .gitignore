@@ -49,3 +49,8 @@ runs/
 paper/build/*
 !paper/build/
 !paper/build/.gitkeep
+
+# Rendered manuscripts and local audit output
+paper/journal_submission/**/*.pdf
+paper/journal_submission/*.pdf
+paper/output/
